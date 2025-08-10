@@ -86,7 +86,7 @@ install_java() {
     echo "Installing Java..."
     curl -s "https://get.sdkman.io" | bash
     source "$HOME/.sdkman/bin/sdkman-init.sh"
-    sdk install java $(sdk list java | grep -o "17\.[0-9.]*-tem" | head -1)
+    sdk install java $(sdk list java | grep -o "21\.[0-9.]*-amzn" | head -1)
 }
 
 # Setup dotfiles
@@ -107,8 +107,31 @@ setup_dotfiles() {
     sed -i '1,/# ENVIRONMENT VARIABLES/d' "$HOME/.zshrc"
 }
 
+# Cleanup old shell configurations
+cleanup_old_configs() {
+    echo "Cleaning up old shell configurations..."
+    
+    # Remove old shell config files
+    rm -f ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.bash_logout
+    rm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.zlogout
+    rm -f ~/.inputrc ~/.bash_history ~/.zsh_history
+    
+    # Remove old package managers and their configs
+    rm -rf ~/.oh-my-zsh ~/.antigen ~/.zinit ~/.zplug
+    rm -rf ~/.sdkman ~/.nvm ~/.pyenv
+    
+    # Remove old shell plugins
+    rm -rf ~/.zsh ~/.bash-completion
+    
+    # Clean apt packages (for Debian/Ubuntu)
+    echo "Removing old shell-related packages..."
+    sudo apt remove -y fish tcsh ksh bash-completion zsh-syntax-highlighting zsh-autosuggestions 2>/dev/null || true
+    sudo apt autoremove -y
+}
+
 # Main installation
 main() {
+    cleanup_old_configs
     install_dependencies
     install_neovim
     setup_zsh
