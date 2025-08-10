@@ -1,18 +1,130 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # ============================================================================
-# Complete Zsh Configuration File
+# DotFiles Installation Script
 # ============================================================================
-# Author: [Your Name]
-# Repository: [Your GitHub Repository]
-# Last Modified: $(date +%Y-%m-%d)
+# Author: Mavalfelly
+# Repository: DotFiles
+# Last Modified: 2025-08-09
 #
-# This configuration is designed to work across multiple devices.
-# Device-specific settings should be placed in ~/.zshrc.local
-#
-# Prerequisites Installation:
-# Ubuntu/Debian: sudo apt install zsh git curl wget fd-find ripgrep fzf htop tree
-# macOS: brew install zsh git curl wget fd ripgrep fzf htop tree
-# Arch: sudo pacman -S zsh git curl wget fd ripgrep fzf htop tree
+# This script will automatically:
+# 1. Install ZSH and set it as default shell
+# 2. Install Neovim and development tools
+# 3. Install Node.js, Python, Java and their package managers
+# 4. Configure all environment variables and paths
+# 5. Set up the development environment
+# ============================================================================
+
+set -e  # Exit on error
+
+# Detect Debian-based Distribution
+if [ ! -f /etc/os-release ]; then
+    echo "This script only supports Debian-based Linux systems"
+    exit 1
+fi
+
+. /etc/os-release
+OS=$NAME
+
+if [[ "$OS" != "Ubuntu" && "$OS" != "Debian GNU/Linux" ]]; then
+    echo "This script only supports Ubuntu and Debian"
+    exit 1
+fi
+
+# Install basic dependencies
+install_dependencies() {
+    echo "Installing basic dependencies..."
+    sudo apt update
+    sudo apt install -y zsh git curl wget fd-find ripgrep fzf htop tree
+    sudo apt install -y build-essential
+}
+
+# Install Neovim
+install_neovim() {
+    echo "Installing Neovim..."
+    sudo apt install -y neovim
+}
+
+# Set ZSH as default shell
+setup_zsh() {
+    echo "Setting up ZSH..."
+    if [ "$SHELL" != "$(which zsh)" ]; then
+        chsh -s $(which zsh)
+    fi
+}
+
+# Install Node.js via nvm
+install_node() {
+    echo "Installing Node.js..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install --lts
+    nvm use --lts
+    
+    # Install global npm packages
+    npm install -g yarn pnpm typescript ts-node
+}
+
+# Install Python via pyenv
+install_python() {
+    echo "Installing Python..."
+    curl https://pyenv.run | bash
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init -)"
+    
+    # Install latest Python
+    pyenv install $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
+    pyenv global $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
+    
+    # Install poetry
+    curl -sSL https://install.python-poetry.org | python3 -
+}
+
+# Install Java via SDKMAN
+install_java() {
+    echo "Installing Java..."
+    curl -s "https://get.sdkman.io" | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    sdk install java $(sdk list java | grep -o "17\.[0-9.]*-tem" | head -1)
+}
+
+# Setup dotfiles
+setup_dotfiles() {
+    echo "Setting up dotfiles..."
+    
+    # Create necessary directories
+    mkdir -p "$HOME/.config/nvim"
+    mkdir -p "$HOME/.local/share/zinit"
+    
+    # Backup existing configs
+    [ -f "$HOME/.zshrc" ] && mv "$HOME/.zshrc" "$HOME/.zshrc.backup"
+    
+    # Copy this file as .zshrc
+    cp "$0" "$HOME/.zshrc"
+    
+    # Remove the installation script part (everything before # ENVIRONMENT VARIABLES)
+    sed -i '1,/# ENVIRONMENT VARIABLES/d' "$HOME/.zshrc"
+}
+
+# Main installation
+main() {
+    install_dependencies
+    install_neovim
+    setup_zsh
+    install_node
+    install_python
+    install_java
+    setup_dotfiles
+    
+    echo "Installation complete! Please restart your shell."
+}
+
+# Run main if script is executed
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi
+
 # ============================================================================
 
 # ============================================================================
