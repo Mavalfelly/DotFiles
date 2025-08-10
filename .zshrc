@@ -1,48 +1,271 @@
 
-# The following lines were added by compinstall
+#!/usr/bin/env zsh
+# ============================================================================
+# Complete Zsh Configuration File
+# ============================================================================
+# Author: [Your Name]
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
 
-zstyle ':completion:*' completer _expand _complete _ignored _approximate
-zstyle ':completion:*' format 'Currently completing %d'
-zstyle ':completion:*' insert-unambiguous true
-zstyle ':completion:*' list-colors ''
+# Default editor and pager
+export EDITOR="nvim"                    # Default text editor
+export VISUAL="nvim"                    # Visual editor
+export PAGER="less"                     # Default pager
+# export BROWSER="firefox"              # Default web browser
+# export TERMINAL="alacritty"           # Default terminal emulator
 
-zstyle ':completion:*' menu select=0
-zstyle ':completion:*' original false
-zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
-zstyle ':completion:*' verbose true
-zstyle :compinstall filename '/home/felly/.zshrc'
+# Language and locale settings
+export LANG="en_US.UTF-8"              # System language
+export LC_ALL="en_US.UTF-8"            # All locale categories
+# export LC_COLLATE="C"                 # Sort order (C = ASCII order)
+# export LC_TIME="en_US.UTF-8"          # Time format
 
+# Path configuration
+export PATH="$HOME/.local/bin:$PATH"                    # Local binaries
+export PATH="$HOME/.npm-global/bin:$PATH"               # npm global packages
+# export PATH="$HOME/.cargo/bin:$PATH"                  # Rust cargo binaries
+# export PATH="$HOME/go/bin:$PATH"                      # Go binaries
+# export PATH="/usr/local/bin:$PATH"                    # Local system binaries
+# export PATH="/opt/homebrew/bin:$PATH"                 # Homebrew (macOS)
+
+# Development environment variables
+# export GOPATH="$HOME/go"                              # Go workspace
+# export GOROOT="/usr/local/go"                         # Go installation
+# export RUSTUP_HOME="$HOME/.rustup"                    # Rust toolchain
+# export CARGO_HOME="$HOME/.cargo"                      # Cargo home
+# export JAVA_HOME="/usr/lib/jvm/default-java"          # Java home
+# export ANDROID_HOME="$HOME/Android/Sdk"               # Android SDK
+# export FLUTTER_ROOT="$HOME/flutter"                   # Flutter SDK
+
+# XDG Base Directory Specification
+export XDG_CONFIG_HOME="$HOME/.config"          # Configuration files
+export XDG_DATA_HOME="$HOME/.local/share"       # Data files
+export XDG_CACHE_HOME="$HOME/.cache"            # Cache files
+export XDG_STATE_HOME="$HOME/.local/state"      # State files
+
+# Application-specific environment variables
+# export DOCKER_HOST="unix:///var/run/docker.sock"     # Docker host
+# export COMPOSE_DOCKER_CLI_BUILD=1                    # Docker Compose CLI
+# export BUILDKIT_PROGRESS=plain                       # Docker Buildkit
+# export FZF_DEFAULT_COMMAND="fd --type f"             # fzf default command
+# export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"  # fzf options
+
+# ============================================================================
+# ZSH HISTORY CONFIGURATION
+# ============================================================================
+
+HISTFILE=~/.histfile                           # History file location
+HISTSIZE=50000                                 # History size in memory
+SAVEHIST=50000                                 # History size on disk
+# HISTFILE="${XDG_STATE_HOME}/zsh/history"    # XDG compliant history location
+
+# History behavior options
+setopt HIST_EXPIRE_DUPS_FIRST          # Expire duplicate entries first
+setopt HIST_IGNORE_DUPS                # Don't record consecutive duplicates
+setopt HIST_IGNORE_ALL_DUPS            # Delete old duplicate entries
+setopt HIST_FIND_NO_DUPS               # Don't display duplicates during search
+setopt HIST_IGNORE_SPACE               # Don't record entries starting with space
+setopt HIST_SAVE_NO_DUPS               # Don't write duplicates to history file
+setopt HIST_REDUCE_BLANKS              # Remove superfluous blanks
+setopt HIST_VERIFY                     # Show command with history expansion
+setopt SHARE_HISTORY                   # Share history between sessions
+setopt APPEND_HISTORY                  # Append to history file
+setopt INC_APPEND_HISTORY             # Write to history file immediately
+
+# Additional history options (commented out)
+# setopt HIST_NO_STORE                 # Don't store history commands
+# setopt HIST_NO_FUNCTIONS             # Don't store function definitions
+# setopt HIST_BEEP                     # Beep when accessing non-existent history
+# setopt BANG_HIST                     # Treat '!' specially in history expansion
+
+# ============================================================================
+# ZSH OPTIONS AND BEHAVIOR
+# ============================================================================
+
+# --- Directory Navigation ---
+setopt AUTO_CD                         # Just type directory name to cd
+setopt AUTO_PUSHD                      # Push directories onto stack automatically
+setopt PUSHD_IGNORE_DUPS              # Don't push duplicate directories
+setopt PUSHD_SILENT                   # Don't print directory stack after pushd/popd
+setopt CDABLE_VARS                    # Allow cd to variable names
+# setopt PUSHD_TO_HOME                # pushd without args goes to home
+# setopt PUSHD_MINUS                  # Exchange meaning of +/- for pushd
+
+# --- Completion System ---
+setopt AUTO_LIST                      # List choices on ambiguous completion
+setopt AUTO_MENU                      # Use menu completion after second tab
+setopt COMPLETE_IN_WORD               # Complete from both ends of word
+setopt ALWAYS_TO_END                  # Move cursor to end after completion
+setopt LIST_PACKED                    # Compact completion lists
+setopt LIST_TYPES                     # Show file types in completion
+# setopt MENU_COMPLETE                # Insert first match immediately
+# setopt AUTO_PARAM_SLASH             # Add slash after completing directories
+# setopt AUTO_PARAM_KEYS              # Remove trailing characters if needed
+# setopt AUTO_REMOVE_SLASH            # Remove trailing slash when needed
+# setopt COMPLETE_ALIASES             # Complete aliases
+# setopt GLOB_COMPLETE                # Generate glob matches as completions
+# setopt HASH_LIST_ALL                # Hash command path on first completion
+
+# --- Globbing and Pattern Matching ---
+setopt EXTENDED_GLOB                  # Use extended globbing syntax
+setopt GLOB_DOTS                      # Include dotfiles in globbing
+setopt NUMERIC_GLOB_SORT              # Sort numeric filenames numerically
+# setopt NO_CASE_GLOB                 # Case insensitive globbing
+# setopt NULL_GLOB                    # Delete pattern if no matches
+# setopt GLOB_SUBST                   # Expand globs in parameter substitution
+# setopt WARN_CREATE_GLOBAL           # Warn when creating global parameters
+# setopt CSH_NULL_GLOB                # Error if no glob match (like csh)
+# setopt BASH_GLOB                    # Use bash-style globbing
+# setopt KSH_GLOB                     # Use ksh-style globbing
+
+# --- Job Control ---
+setopt AUTO_RESUME                    # Single word commands resume jobs
+setopt LONG_LIST_JOBS                 # List jobs in long format
+setopt NOTIFY                         # Report job status immediately
+# setopt NO_BG_NICE                   # Don't run background jobs at lower priority
+# setopt NO_HUP                       # Don't send HUP signal to jobs on shell exit
+# setopt CHECK_JOBS                   # Check for jobs before exiting
+# setopt NO_CHECK_JOBS                # Don't check for jobs before exiting
+
+# --- Input/Output ---
+setopt CORRECT                        # Spell correction for commands
+setopt CORRECT_ALL                    # Spell correction for all arguments
+setopt INTERACTIVE_COMMENTS           # Allow comments in interactive shell
+setopt RC_QUOTES                      # Allow '' to represent single quote in strings
+setopt SHORT_LOOPS                    # Allow short forms of for/repeat/select
+# setopt CLOBBER                      # Allow > redirection to overwrite files
+# setopt NO_CLOBBER                   # Prevent > redirection from overwriting
+# setopt APPEND_CREATE                # Create files with >> if they don't exist
+# setopt MULTIOS                      # Allow multiple redirections
+# setopt PATH_DIRS                    # Search path even for commands with slashes
+# setopt HASH_CMDS                    # Hash commands as they are executed
+# setopt HASH_DIRS                    # Hash directories as they are added to path
+
+# --- Prompt and Terminal ---
+setopt PROMPT_SUBST                   # Allow parameter expansion in prompts
+setopt TRANSIENT_RPROMPT              # Remove right prompt after command
+# setopt PROMPT_CR                    # Print CR before each prompt
+# setopt PROMPT_SP                    # Preserve partial line before prompt
+# setopt SINGLE_LINE_ZLE              # Use single line for line editor
+
+# --- Scripting and Functions ---
+# setopt C_BASES                      # Use 0x prefix for hex numbers
+# setopt OCTAL_ZEROES                 # Use leading zeros for octal numbers
+# setopt TYPESET_SILENT               # Don't print values when setting variables
+# setopt WARN_CREATE_GLOBAL           # Warn when creating global variables
+# setopt LOCAL_OPTIONS                # Options set in functions are local
+# setopt LOCAL_TRAPS                  # Traps set in functions are local
+# setopt FUNCTION_ARGZERO             # Set $0 to function name
+# setopt MULTI_FUNC_DEF               # Allow multiple function definitions
+
+# --- Key Bindings ---
+bindkey -e                           # Use Emacs key bindings
+# bindkey -v                         # Use Vi key bindings
+
+# ============================================================================
+# COMPLETION SYSTEM SETUP
+# ============================================================================
+
+# Load and initialize completion system
 autoload -Uz compinit
 compinit
-# End of lines added by compinstall
 
+# Completion styles
+zstyle ':completion:*' menu select                    # Use menu for completion
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}  # Use colors in completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'  # Case insensitive matching
+zstyle ':completion:*' completer _expand _complete _correct _approximate  # Completion strategies
+zstyle ':completion:*' format 'Completing %d'        # Completion group format
+zstyle ':completion:*' group-name ''                 # Group completions
+zstyle ':completion:*' verbose yes                   # Verbose completions
 
+# Additional completion styles (commented out)
+# zstyle ':completion:*:descriptions' format '%U%B%d%b%u'  # Description format
+# zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'  # No match warning
+# zstyle ':completion:*' use-cache on                 # Use completion cache
+# zstyle ':completion:*' cache-path ~/.zcompcache     # Cache location
+# zstyle ':completion:*:cd:*' ignore-parents parent pwd  # Don't complete parent dirs
+# zstyle ':completion:*:*:kill:*' menu yes select     # Menu for kill command
+# zstyle ':completion:*:kill:*' force-list always     # Always show kill list
 
+# ============================================================================
+# ALIASES
+# ============================================================================
 
-# =====================
-# Zsh configuration file
-# =====================
+# --- Basic Commands ---
+alias ls='ls --color=auto'            # Colorized ls
+alias ll='ls -lah'                    # Long list with hidden files
+alias la='ls -A'                      # List all except . and ..
+alias l='ls -CF'                      # Classify files
+alias grep='grep --color=auto'        # Colorized grep
+alias fgrep='fgrep --color=auto'      # Colorized fgrep
+alias egrep='egrep --color=auto'      # Colorized egrep
 
-# --- History and options ---
-HISTFILE=~/.histfile
-HISTSIZE=10000
-SAVEHIST=10000
+# --- Navigation ---
+alias ..='cd ..'                      # Go up one directory
+alias ...='cd ../..'                  # Go up two directories
+alias ....='cd ../../..'              # Go up three directories
+alias .....='cd ../../../..'          # Go up four directories
+# alias ~="cd ~"                      # Go to home directory
+# alias -- -="cd -"                  # Go to previous directory
 
-setopt appendhistory          # Append, don’t overwrite history
-setopt histignoredups         # Ignore duplicates
-setopt sharehistory           # Share history across terminals
-setopt incappendhistory       # Save commands as you type
-setopt autocd                 # Just type folder name to cd
-setopt correct                # Spell correction for commands
-bindkey -e                   # Emacs keybindings
+# --- Git Aliases ---
+alias gs='git status'                 # Git status
+alias ga='git add'                    # Git add
+alias gc='git commit'                 # Git commit
+alias gp='git push'                   # Git push
+alias gl='git pull'                   # Git pull
+alias gd='git diff'                   # Git diff
+alias gb='git branch'                 # Git branch
+alias gco='git checkout'              # Git checkout
+alias glog='git log --oneline --graph'  # Pretty git log
+# alias gcm='git commit -m'           # Git commit with message
+# alias gca='git commit -am'          # Git commit all with message
+# alias gst='git stash'               # Git stash
+# alias gsp='git stash pop'           # Git stash pop
 
-# --- Aliases ---
-alias ll='ls -lah'
-alias gs='git status'
-alias gc='git commit'
-alias gp='git push'
-alias ..='cd ..'
-alias ...='cd ../..'
+# --- System Utilities ---
+alias df='df -h'                      # Human readable df
+alias du='du -h'                      # Human readable du
+alias free='free -h'                  # Human readable free
+alias ps='ps aux'                     # Detailed process list
+alias top='htop'                      # Use htop instead of top
+alias tree='tree -C'                  # Colorized tree
+# alias mkdir='mkdir -p'              # Create parent directories
+# alias cp='cp -i'                    # Interactive copy
+# alias mv='mv -i'                    # Interactive move
+# alias rm='rm -i'                    # Interactive remove
+# alias ln='ln -i'                    # Interactive link
+
+# --- Editor Aliases ---
+alias vim='nvim'                      # Use neovim
+alias vi='nvim'                       # Use neovim
+# alias emacs='emacsclient -t'        # Use emacs client
+
+# --- Development Aliases ---
+# alias py='python3'                  # Python 3
+# alias pip='pip3'                    # Python 3 pip
+# alias serve='python3 -m http.server'  # Simple HTTP server
+# alias json='python3 -m json.tool'  # Pretty print JSON
+# alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
+# alias urldecode='python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'
+
+# --- Network Aliases ---
+# alias myip='curl -s https://ipinfo.io/ip'  # Get public IP
+# alias localip='ip route get 1.2.3.4 | awk "{print $7}"'  # Get local IP
+# alias ports='netstat -tulanp'       # Show open ports
+
+# --- Docker Aliases ---
+# alias d='docker'                    # Docker shorthand
+# alias dc='docker-compose'           # Docker compose shorthand
+# alias dps='docker ps'               # Docker process status
+# alias di='docker images'            # Docker images
+# alias dex='docker exec -it'         # Docker exec interactive
+
+# ============================================================================
+# FUNCTIONS
+# ============================================================================
 
 # --- Git status prompt helper ---
 git_prompt_info() {
@@ -57,13 +280,13 @@ git_prompt_info() {
       bgcolor='%K{green}'        # Green bg clean repo
       symbol='%F{black}✓%f'       # Black checkmark
     fi
-    echo "%F{blue}%f%F{white}%B $branch %b%f%K{black}%f${bgcolor} $symbol %k"
+    echo "%F{blue}%f%F{white}%B $branch %b%f%K{black}%f${bgcolor} $symbol %k"
   else
     echo ""
   fi
 }
 
-# --- Measure last command duration ---
+# --- Command duration measurement ---
 autoload -Uz add-zsh-hook
 
 preexec() {
@@ -86,7 +309,7 @@ precmd() {
 add-zsh-hook preexec preexec
 add-zsh-hook precmd precmd
 
-# --- Format last command duration nicely ---
+# --- Format last command duration ---
 last_cmd_duration() {
   if [[ -n $CMD_DURATION && $CMD_DURATION -gt 0 ]]; then
     local ms=$CMD_DURATION
@@ -115,7 +338,48 @@ last_cmd_status() {
   fi
 }
 
-# --- Prompt setup with colors and info ---
+# --- Utility Functions (commented out examples) ---
+# # Extract various archive formats
+# extract() {
+#   if [ -f $1 ] ; then
+#     case $1 in
+#       *.tar.bz2)   tar xjf $1     ;;
+#       *.tar.gz)    tar xzf $1     ;;
+#       *.bz2)       bunzip2 $1     ;;
+#       *.rar)       unrar e $1     ;;
+#       *.gz)        gunzip $1      ;;
+#       *.tar)       tar xf $1      ;;
+#       *.tbz2)      tar xjf $1     ;;
+#       *.tgz)       tar xzf $1     ;;
+#       *.zip)       unzip $1       ;;
+#       *.Z)         uncompress $1  ;;
+#       *.7z)        7z x $1        ;;
+#       *)     echo "'$1' cannot be extracted via extract()" ;;
+#     esac
+#   else
+#     echo "'$1' is not a valid file"
+#   fi
+# }
+
+# # Make directory and cd into it
+# mkcd() {
+#   mkdir -p "$1" && cd "$1"
+# }
+
+# # Find process by name
+# psg() {
+#   ps aux | grep -v grep | grep "$@" -i --color=always
+# }
+
+# # Weather function
+# weather() {
+#   curl -s "wttr.in/$1"
+# }
+
+# ============================================================================
+# PROMPT CONFIGURATION
+# ============================================================================
+
 setopt PROMPT_SUBST
 
 PROMPT=''
@@ -138,10 +402,14 @@ PROMPT+='$(last_cmd_status) '
 # Arrow prompt in green
 PROMPT+='%F{green}➜ %f'
 
+# Right prompt (disabled by default)
+# RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
 
+# ============================================================================
+# ZINIT PLUGIN MANAGER SETUP
+# ============================================================================
 
-
-### Added by Zinit's installer
+# Install Zinit if not already installed
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
     print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
     command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
@@ -152,49 +420,128 @@ fi
 
 source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 
-# --- Zinit Plugin Manager Setup ---
-# Source zinit for managing plugins.
-# Adjust path if your install location is different.
-source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+# ============================================================================
+# PLUGIN CONFIGURATION
+# ============================================================================
 
-# --- Zinit Plugin Manager Setup ---
-source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
-
-# --- Use SSH URLs for all plugins ---
-zinit ice from"gh"
-
-# Productivity & quality-of-life plugins
+# --- Essential Productivity Plugins ---
 zinit ice wait lucid
-zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-autosuggestions      # Fish-like autosuggestions
 
 zinit ice wait"0"
-zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-syntax-highlighting  # Syntax highlighting
 
-zinit light zsh-users/zsh-history-substring-search
-zinit light zsh-users/zsh-completions
-zinit light rupa/z
-zinit light tarrasch/zsh-autoenv
-zinit light mafredri/zsh-async
+zinit light zsh-users/zsh-history-substring-search  # History search with arrows
+zinit light zsh-users/zsh-completions         # Additional completions
+zinit light rupa/z                            # Jump to directories (z command)
+zinit light tarrasch/zsh-autoenv              # Auto source .env files
+zinit light mafredri/zsh-async                # Async functions
 
-# --- Completion system ---
-autoload -Uz compinit
-compinit
+# --- Additional Useful Plugins (commented out) ---
+zinit light zdharma-continuum/fast-syntax-highlighting  # Faster syntax highlighting
+zinit light marlonrichert/zsh-autocomplete   # Better autocomplete
+zinit light Aloxaf/fzf-tab                   # fzf integration for completions
+# zinit light agkozak/zsh-z                    # Alternative to rupa/z
+zinit light hlissner/zsh-autopair            # Auto-pair brackets/quotes
+zinit light MichaelAquilina/zsh-you-should-use  # Suggest aliases for commands
+zinit light wfxr/forgit                      # Interactive git commands
+# zinit light jimhester/per-directory-history  # Per-directory command history
+# zinit light zsh-users/zsh-apple-touchbar     # macOS Touch Bar support
 
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
+# --- Themes (commented out - using custom prompt) ---
+# zinit ice depth=1; zinit light romkatv/powerlevel10k    # Powerlevel10k theme
+# zinit light spaceship-prompt/spaceship-prompt          # Spaceship theme
+# zinit light sindresorhus/pure                          # Pure theme
 
-
-# Load a few important annexes, without Turbo
-# (this is currently required for annexes)
+# --- Load Zinit annexes ---
 zinit light-mode for \
     zdharma-continuum/zinit-annex-as-monitor \
     zdharma-continuum/zinit-annex-bin-gem-node \
     zdharma-continuum/zinit-annex-patch-dl \
     zdharma-continuum/zinit-annex-rust
 
-### End of Zinit's installer chunk
+# Initialize completion system for zinit
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
 
-# --- Add dev tools paths (adjust if needed) ---
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.npm-global/bin:$PATH"
+# ============================================================================
+# ADDITIONAL TOOL CONFIGURATIONS
+# ============================================================================
 
+# --- FZF Configuration ---
+# if command -v fzf &> /dev/null; then
+#   export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+#   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+#   export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+#   export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+# fi
+
+# --- Node Version Manager (NVM) ---
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# --- Python Virtual Environment ---
+# if command -v python3 &> /dev/null; then
+#   export PYENV_ROOT="$HOME/.pyenv"
+#   export PATH="$PYENV_ROOT/bin:$PATH"
+#   if command -v pyenv &> /dev/null; then
+#     eval "$(pyenv init -)"
+#   fi
+# fi
+
+# --- Ruby Version Manager (RVM) ---
+# [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+
+# --- Rust Environment ---
+# [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+# --- Homebrew (macOS) ---
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#   if [[ -f "/opt/homebrew/bin/brew" ]]; then
+#     eval "$(/opt/homebrew/bin/brew shellenv)"
+#   elif [[ -f "/usr/local/bin/brew" ]]; then
+#     eval "$(/usr/local/bin/brew shellenv)"
+#   fi
+# fi
+
+# ============================================================================
+# KEY BINDINGS
+# ============================================================================
+
+# History substring search bindings
+bindkey '^[[A' history-substring-search-up      # Up arrow
+bindkey '^[[B' history-substring-search-down    # Down arrow
+bindkey -M emacs '^P' history-substring-search-up    # Ctrl-P
+bindkey -M emacs '^N' history-substring-search-down  # Ctrl-N
+
+# Additional useful key bindings (commented out)
+# bindkey '^R' history-incremental-search-backward  # Ctrl-R for reverse search
+# bindkey '^S' history-incremental-search-forward   # Ctrl-S for forward search
+bindkey '^[[1;5C' forward-word                    # Ctrl-Right arrow
+bindkey '^[[1;5D' backward-word                   # Ctrl-Left arrow
+# bindkey '^[[3~' delete-char                       # Delete key
+# bindkey '^[[H' beginning-of-line                  # Home key
+# bindkey '^[[F' end-of-line                        # End key
+
+# ============================================================================
+# DEVICE-SPECIFIC CONFIGURATION
+# ============================================================================
+
+# Load device-specific configuration if it exists
+# This file should contain device-specific settings like:
+# - Different paths
+# - Device-specific aliases
+# - Custom environment variables
+# - Local development settings
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# ============================================================================
+# PERFORMANCE MONITORING (for debugging)
+# ============================================================================
+
+# Uncomment to enable zsh startup time profiling
+# zmodload zsh/zprof
+
+# Add this line at the end of the file to see profiling results:
+# zprof
