@@ -45,10 +45,26 @@ install_dependencies() {
         libffi-dev liblzma-dev python3-dev
 }
 
-# Install Neovim
+# Install Neovim and LazyVim
 install_neovim() {
     echo "Installing Neovim..."
     sudo apt install -y neovim
+
+    echo "Setting up LazyVim..."
+    # Clean existing Neovim configs
+    rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
+
+    # Create required directory
+    mkdir -p "$HOME/.config/nvim"
+
+    # Clone LazyVim starter
+    git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"
+    rm -rf "$HOME/.config/nvim/.git"  # Remove git repo to allow for own version control
+
+    # Copy our custom Neovim config files
+    cp -r "$HOME/.dotfiles/.config/nvim/"* "$HOME/.config/nvim/"
+
+    echo "LazyVim setup complete. First run will install plugins automatically."
 }
 
 # Set ZSH as default shell
