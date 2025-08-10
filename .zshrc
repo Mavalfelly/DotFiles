@@ -274,13 +274,13 @@ git_prompt_info() {
     local dirty=$(git status --porcelain 2>/dev/null)
     local bgcolor symbol
     if [[ -n $dirty ]]; then
-      bgcolor='%K{cyan}'          # Unified color swatch for dirty repo
-      symbol='%F{red}✗%f'         # Red X
+      bgcolor='%K{red}'           # Red background for dirty repo
+      symbol='✗'                  # X symbol
     else
-      bgcolor='%K{cyan}'          # Unified color swatch for clean repo
-      symbol='%F{green}✓%f'       # Green checkmark
+      bgcolor='%K{green}'         # Green background for clean repo
+      symbol='✓'                  # Checkmark symbol
     fi
-    echo "%F{black}%K{cyan} $branch ${symbol} %k%f"
+    echo "%F{black}%K{cyan} ${branch} %k%f%F{black}${bgcolor} ${symbol} %k%f"
   else
     echo ""
   fi
@@ -332,9 +332,9 @@ last_cmd_duration() {
 last_cmd_status() {
   local code=$?
   if (( code == 0 )); then
-    echo "%F{green}✔%f"
+    echo "%F{black}%K{green} ✔ %k%f"
   else
-    echo "%F{red}✘($code)%f"
+    echo "%F{white}%K{red} ✘ $code %k%f"
   fi
 }
 
@@ -384,26 +384,26 @@ setopt PROMPT_SUBST
 
 PROMPT=''
 
-# Hostname in unified color swatch
-PROMPT+='%F{black}%K{cyan} %m %k%f '
+# Hostname in yellow (p10k style)
+PROMPT+='%F{black}%K{yellow} %m %k%f'
 
-# Current time in unified color swatch
-PROMPT+='%F{black}%K{cyan} %* %k%f '
+# Current time in cyan (p10k style)
+PROMPT+='%F{black}%K{cyan} %* %k%f'
 
-# Current directory in unified color swatch
-PROMPT+='%F{black}%K{cyan} %~ %k%f '
+# Current directory in blue (p10k style)
+PROMPT+='%F{black}%K{blue} %~ %k%f'
 
 # Git info block
 PROMPT+='$(git_prompt_info) '
 
-# Last command duration
-PROMPT+='$(last_cmd_duration) '
+# Last command duration with cyan background
+PROMPT+='%F{black}%K{cyan} $(last_cmd_duration) %k%f'
 
-# Last command exit status
+# Last command exit status with appropriate background
 PROMPT+='$(last_cmd_status) '
 
-# Arrow prompt in green
-PROMPT+='%F{green}➜ %f'
+# Arrow prompt in bright colors
+PROMPT+='%F{%(?.blue.red)}➜ %f'
 
 # Right prompt (disabled by default)
 # RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
