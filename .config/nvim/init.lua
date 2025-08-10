@@ -58,7 +58,7 @@ vim.opt.splitright = true -- Vertical splits open to the right
 vim.opt.splitbelow = false -- Horizontal splits open below
 vim.opt.equalalways = true -- Splits auto resize equally
 vim.opt.winminheight = 1 -- Minimum window height
-vim.opt.winminwidth = 1 -- Minimum window width
+vim.opt.winminwidth = 10 -- Minimum window width
 
 -- FILES, SWAPS & UNDO
 vim.opt.swapfile = false -- Disable swap files

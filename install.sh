@@ -32,25 +32,52 @@ fi
 
 # Install basic dependencies
 install_dependencies() {
-    echo "Installing basic dependencies..."
+    echo "▶ Installing system packages..."
     sudo apt update
     sudo apt install -y zsh git curl wget fd-find ripgrep fzf htop tree
     sudo apt install -y build-essential
     
     # Install Python build dependencies
-    echo "Installing Python build dependencies..."
+    echo "▶ Installing Python build dependencies..."
     sudo apt install -y make build-essential libssl-dev zlib1g-dev \
         libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
         libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev \
         libffi-dev liblzma-dev python3-dev
 }
 
-# Install Neovim and LazyVim
+# Install Neovim from source and set up LazyVim
 install_neovim() {
-    echo "Installing Neovim..."
-    sudo apt install -y neovim
+    echo "▶ Removing existing Neovim installations..."
+    # Remove APT package if installed
+    sudo apt-get remove -y neovim neovim-runtime
+    sudo apt-get purge -y neovim neovim-runtime
+    sudo apt-get autoremove -y
+    
+    # Clean up any previous source builds
+    rm -rf "/tmp/neovim"
+    
+    # Remove any existing source build
+    sudo rm -f /usr/local/bin/nvim
+    sudo rm -rf /usr/local/share/nvim/
+    
+    echo "▶ Installing Neovim build dependencies..."
+    sudo apt-get install -y ninja-build gettext cmake unzip curl git build-essential
 
-    echo "Setting up LazyVim..."
+    echo "▶ Cloning Neovim repository..."
+    git clone https://github.com/neovim/neovim /tmp/neovim
+    cd /tmp/neovim
+
+    echo "▶ Building Neovim from source..."
+    git checkout master
+    make CMAKE_BUILD_TYPE=Release
+    sudo make install
+    cd -
+    rm -rf /tmp/neovim
+
+    # Verify installation
+    nvim --version
+
+    echo "▶ Setting up LazyVim..."
     # Clean existing Neovim configs
     rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
 
@@ -65,53 +92,116 @@ install_neovim() {
     cp -r "$HOME/.dotfiles/.config/nvim/"* "$HOME/.config/nvim/"
 
     echo "LazyVim setup complete. First run will install plugins automatically."
+    
+    # Print Neovim version for verification
+    echo "Installed Neovim version:"
+    nvim --version | head -n 1
 }
 
 # Set ZSH as default shell
 setup_zsh() {
-    echo "Setting up ZSH..."
+    echo "▶ Checking current shell..."
     if [ "$SHELL" != "$(which zsh)" ]; then
+        echo "▶ Setting ZSH as default shell..."
         chsh -s $(which zsh)
+    else
+        echo "▶ ZSH is already the default shell"
     fi
 }
 
 # Install Node.js via nvm
 install_node() {
-    echo "Installing Node.js..."
-    # Install nvm
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    echo "▶ Cleaning up Node.js-related directories..."
+    rm -rf "$HOME/.nvm"                 # Remove nvm (not needed anymore)
+    rm -rf "$HOME/.npm"
+    rm -rf "$HOME/.npm-packages"
+    rm -rf "$HOME/.npm-global"          # Will be recreated by new installation
+    rm -rf "$HOME/.node-gyp"
+    rm -rf "$HOME/.yarn"
+    rm -rf "$HOME/.pnpm-store"
     
-    # Set up nvm in the current shell
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    # Remove NodeSource repository if it exists
+    sudo rm -f /etc/apt/sources.list.d/nodesource.list
+    sudo rm -f /usr/share/keyrings/nodesource.gpg
     
-    # Add nvm to shell rc files
-    echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc
-    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion' >> ~/.bashrc
+    # Also unset environment variables
+    unset NPM_CONFIG_PREFIX
+    unset NPM_CONFIG_GLOBALCONFIG
+    unset NPM_CONFIG_INIT_MODULE
     
-    # Source the updated bashrc
-    source ~/.bashrc
+    echo "▶ Installing Node.js from NodeSource repository..."
     
-    # Install Node.js
-    nvm install --lts
-    nvm use --lts
+    # Add NodeSource repository for latest LTS
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     
-    # Set up npm without conflicting with nvm
-    mkdir -p "$HOME/.npm-packages"
-    npm config set prefix "$HOME/.npm-packages"
+    # Install Node.js and npm
+    sudo apt-get install -y nodejs
     
-    # Add npm global packages to PATH
-    echo 'export PATH="$HOME/.npm-packages/bin:$PATH"' >> ~/.bashrc
-    export PATH="$HOME/.npm-packages/bin:$PATH"
+    echo "▶ Verifying Node.js installation..."
+    if ! command -v node >/dev/null 2>&1; then
+        echo "❌ Node.js installation failed."
+        return 1
+    fi
     
-    # Install global npm packages
+    if ! command -v npm >/dev/null 2>&1; then
+        echo "❌ npm installation failed."
+        return 1
+    fi
+    
+    echo "▶ Configuring npm for global packages..."
+    
+    # Create npm global directory in user home
+    mkdir -p "$HOME/.npm-global"
+    
+    # Configure npm to use the global directory
+    npm config set prefix "$HOME/.npm-global"
+    
+    # Add npm global bin to PATH for this session
+    export PATH="$HOME/.npm-global/bin:$PATH"
+    
+    # Add to shell profiles for persistence
+    echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.bashrc"
+    
+    echo "▶ Installing global npm packages..."
     npm install -g yarn pnpm typescript ts-node
+    
+    echo "▶ Verifying installations..."
+    echo "Node version: $(node --version)"
+    echo "NPM version: $(npm --version)"
+    
+    # Check yarn installation
+    if command -v yarn >/dev/null 2>&1; then
+        echo "Yarn version: $(yarn --version)"
+    else
+        echo "Yarn: Not installed or not in PATH"
+    fi
+    
+    # Check pnpm installation
+    if command -v pnpm >/dev/null 2>&1; then
+        echo "PNPM version: $(pnpm --version)"
+    else
+        echo "PNPM: Not installed or not in PATH"
+    fi
+    
+    # Check TypeScript installation
+    if command -v tsc >/dev/null 2>&1; then
+        echo "TypeScript version: $(tsc --version)"
+    else
+        echo "TypeScript: Not installed or not in PATH"
+    fi
+    
+    echo "✅ Node.js installation completed successfully!"
 }
 
 # Install Python via pyenv
 install_python() {
-    echo "Installing Python..."
+    echo "▶ Cleaning up previous Python installations..."
+    rm -rf "$HOME/.pyenv"
+    rm -rf "$HOME/.poetry"
+    rm -rf "$HOME/.local/share/pypoetry"
+    rm -rf "$HOME/.cache/pypoetry"
+    
+    echo "▶ Installing Python Version Manager (pyenv)..."
     curl https://pyenv.run | bash
     
     # Set up pyenv in the shell
@@ -134,26 +224,31 @@ install_python() {
     # Reload shell environment
     source ~/.bashrc
     
-    # Install latest stable Python version
+    echo "▶ Installing latest stable Python version..."
     pyenv install $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
     pyenv global $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
     
-    # Install poetry
-    curl -sSL https://install.python-poetry.org | python3 -
+    # Add local bin to PATH for Python packages
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    export PATH="$HOME/.local/bin:$PATH"
 }
 
 # Install Java via SDKMAN
 install_java() {
-    echo "Installing Java..."
+    echo "▶ Cleaning up previous Java installations..."
+    rm -rf "$HOME/.sdkman"
+    
+    echo "▶ Installing SDKMAN..."
     curl -s "https://get.sdkman.io" | bash
     source "$HOME/.sdkman/bin/sdkman-init.sh"
+    
+    echo "▶ Installing latest Java 21..."
     sdk install java $(sdk list java | grep -o "21\.[0-9.]*-amzn" | head -1)
 }
 
 # Setup dotfiles
 setup_dotfiles() {
-    echo "Setting up dotfiles..."
-    
+    echo "▶ Creating configuration directories..."
     # Create necessary directories
     mkdir -p "$HOME/.config/nvim"
     mkdir -p "$HOME/.local/share/zinit"
@@ -170,7 +265,7 @@ setup_dotfiles() {
 
 # Cleanup old shell configurations
 cleanup_old_configs() {
-    echo "Cleaning up old shell configurations..."
+    echo "▶ Removing old shell configuration files..."
     
     # Remove old shell config files
     rm -f ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.bash_logout
@@ -190,18 +285,156 @@ cleanup_old_configs() {
     sudo apt autoremove -y
 }
 
+# Clean installation directories
+cleanup_install_dirs() {
+    echo "▶ Cleaning up previous installations..."
+    
+    echo "▶ Removing system-level packages..."
+    # Remove system Python installations (except system python3)
+    sudo apt-get remove -y python2* python3-pip python3-dev python3-venv
+    # Remove Node.js and npm
+    sudo apt-get remove -y nodejs npm
+    # Remove Java
+    sudo apt-get remove -y default-jdk default-jre openjdk* oracle-java*
+    sudo apt-get autoremove -y
+    
+    echo "▶ Cleaning up Python-related directories..."
+    rm -rf "$HOME/.pyenv"
+    rm -rf "$HOME/.poetry"
+    rm -rf "$HOME/.local/share/pypoetry"
+    rm -rf "$HOME/.cache/pypoetry"
+    rm -rf "$HOME/.local/lib/python*"
+    rm -rf "$HOME/.local/share/virtualenv"
+    rm -rf "$HOME/.cache/pip"
+    
+    echo "▶ Cleaning up Node.js-related directories..."
+    rm -rf "$HOME/.nvm"
+    rm -rf "$HOME/.npm"
+    rm -rf "$HOME/.npm-packages"
+    rm -rf "$HOME/.npm-global"          # Fixed: Added this line
+    rm -rf "$HOME/.node-gyp"
+    rm -rf "$HOME/.yarn"
+    rm -rf "$HOME/.pnpm-store"
+    
+    # Also unset environment variables
+    unset NPM_CONFIG_PREFIX
+    unset NPM_CONFIG_GLOBALCONFIG
+    unset NPM_CONFIG_INIT_MODULE
+    
+    echo "▶ Cleaning up Java-related directories..."
+    rm -rf "$HOME/.sdkman"
+    rm -rf "$HOME/.gradle"
+    rm -rf "$HOME/.m2"
+    sudo rm -rf /usr/lib/jvm/*
+    
+    echo "▶ Cleaning up temporary directories..."
+    rm -rf "/tmp/neovim"
+    rm -rf "/tmp/poetry-installer-*"
+    rm -rf "/tmp/node-*"
+    rm -rf "/tmp/npm-*"
+    rm -rf "/tmp/pyenv-*"
+    
+    echo "▶ Removing any leftover binaries..."
+    sudo rm -f /usr/local/bin/{node,npm,python*,pip*,java,javac}
+}
+
+# Print stage header
+print_stage() {
+    local stage="$1"
+    echo
+    echo "================================================================"
+    echo "  ${stage}"
+    echo "================================================================"
+}
+
+# Track installation status
+declare -A install_status
+
 # Main installation
 main() {
-    cleanup_old_configs
-    install_dependencies
-    install_neovim
-    setup_zsh
-    install_node
-    install_python
-    install_java
-    setup_dotfiles
+    local start_time=$(date +%s)
     
+    print_stage "CLEANING UP INSTALLATIONS"
+    cleanup_install_dirs
+    
+    print_stage "CLEANING OLD CONFIGURATIONS"
+    if cleanup_old_configs; then
+        install_status["cleanup"]="✓ Success"
+    else
+        install_status["cleanup"]="✗ Failed"
+    fi
+    
+    print_stage "INSTALLING DEPENDENCIES"
+    if install_dependencies; then
+        install_status["dependencies"]="✓ Success"
+    else
+        install_status["dependencies"]="✗ Failed"
+    fi
+    
+    print_stage "INSTALLING NODE.JS"
+    if install_node; then
+        install_status["node"]="✓ Success"
+    else
+        install_status["node"]="✗ Failed"
+    fi
+
+    print_stage "INSTALLING NEOVIM"
+    if install_neovim; then
+        install_status["neovim"]="✓ Success"
+    else
+        install_status["neovim"]="✗ Failed"
+    fi
+    
+    print_stage "SETTING UP ZSH"
+    if setup_zsh; then
+        install_status["zsh"]="✓ Success"
+    else
+        install_status["zsh"]="✗ Failed"
+    fi
+    
+    print_stage "INSTALLING PYTHON"
+    if install_python; then
+        install_status["python"]="✓ Success"
+    else
+        install_status["python"]="✗ Failed"
+    fi
+    
+    print_stage "INSTALLING JAVA"
+    if install_java; then
+        install_status["java"]="✓ Success"
+    else
+        install_status["java"]="✗ Failed"
+    fi
+    
+    print_stage "SETTING UP DOTFILES"
+    if setup_dotfiles; then
+        install_status["dotfiles"]="✓ Success"
+    else
+        install_status["dotfiles"]="✗ Failed"
+    fi
+    
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    
+    # Print installation report
+    echo
+    echo "================================================================"
+    echo "                    INSTALLATION REPORT"
+    echo "================================================================"
+    echo "Cleanup:              ${install_status["cleanup"]}"
+    echo "Dependencies:         ${install_status["dependencies"]}"
+    echo "Neovim:              ${install_status["neovim"]}"
+    echo "Zsh:                 ${install_status["zsh"]}"
+    echo "Node.js:             ${install_status["node"]}"
+    echo "Python:              ${install_status["python"]}"
+    echo "Java:                ${install_status["java"]}"
+    echo "Dotfiles:            ${install_status["dotfiles"]}"
+    echo "----------------------------------------------------------------"
+    echo "Total Duration:      ${duration} seconds"
+    echo "----------------------------------------------------------------"
+    echo
     echo "Installation complete! Please restart your shell."
+    echo "================================================================"
 }
 
 # Run main if script is executed
@@ -244,24 +477,23 @@ export XDG_STATE_HOME="$HOME/.local/state"      # State files
 # ============================================================================
 # Installation:
 # Node.js via NodeSource: curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt-get install -y nodejs
-# NVM: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 # Yarn: npm install -g yarn
 # pnpm: npm install -g pnpm
 
-# Node Version Manager (NVM)
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Load nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # Load nvm bash_completion
-
 # Node.js environment
-# export NODE_ENV="development"           # Default Node environment
+export PATH="$HOME/.npm-global/bin:$PATH"       # npm global packages
+# export NODE_ENV="development"                  # Default Node environment
 # export NODE_OPTIONS="--max-old-space-size=4096"  # Increase Node.js memory limit
+
+# npm configuration
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"    # Global npm packages location
 
 # JavaScript/TypeScript aliases
 alias npm-list-global='npm list -g --depth=0'   # List global npm packages
 alias npm-update-global='npm update -g'         # Update global npm packages
 alias yarn-list-global='yarn global list'       # List global yarn packages
 alias pnpm-list-global='pnpm list -g'          # List global pnpm packages
+alias node-version='node --version && npm --version'  # Show Node.js versions
 
 # ============================================================================
 # DEVELOPMENT ENVIRONMENT - PYTHON
@@ -347,7 +579,6 @@ HISTSIZE=50000                                 # History size in memory
 SAVEHIST=50000                                 # History size on disk
 
 # History behavior options
-setopt HIST_EXPIRE_DUPS_FIRST          # Expire duplicate entries first
 setopt HIST_IGNORE_DUPS                # Don't record consecutive duplicates
 setopt HIST_IGNORE_ALL_DUPS            # Delete old duplicate entries
 setopt HIST_FIND_NO_DUPS               # Don't display duplicates during search
