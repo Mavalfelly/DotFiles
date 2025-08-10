@@ -23,10 +23,10 @@ if [ ! -f /etc/os-release ]; then
 fi
 
 . /etc/os-release
-OS=$NAME
+OS=$ID_LIKE
 
-if [[ "$OS" != "Ubuntu" && "$OS" != "Debian GNU/Linux" ]]; then
-    echo "This script only supports Ubuntu and Debian"
+if [[ "$OS" != *"debian"* ]]; then
+    echo "This script only supports Debian-based systems"
     exit 1
 fi
 
