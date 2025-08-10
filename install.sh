@@ -62,11 +62,32 @@ setup_zsh() {
 # Install Node.js via nvm
 install_node() {
     echo "Installing Node.js..."
+    # Install nvm
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    
+    # Set up nvm in the current shell
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    
+    # Add nvm to shell rc files
+    echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc
+    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion' >> ~/.bashrc
+    
+    # Source the updated bashrc
+    source ~/.bashrc
+    
+    # Install Node.js
     nvm install --lts
     nvm use --lts
+    
+    # Set up npm without conflicting with nvm
+    mkdir -p "$HOME/.npm-packages"
+    npm config set prefix "$HOME/.npm-packages"
+    
+    # Add npm global packages to PATH
+    echo 'export PATH="$HOME/.npm-packages/bin:$PATH"' >> ~/.bashrc
+    export PATH="$HOME/.npm-packages/bin:$PATH"
     
     # Install global npm packages
     npm install -g yarn pnpm typescript ts-node
@@ -210,9 +231,6 @@ export XDG_STATE_HOME="$HOME/.local/state"      # State files
 # NVM: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 # Yarn: npm install -g yarn
 # pnpm: npm install -g pnpm
-
-export NPM_CONFIG_PREFIX="$HOME/.npm-global"    # npm global packages location
-export PATH="$HOME/.npm-global/bin:$PATH"       # npm global packages
 
 # Node Version Manager (NVM)
 export NVM_DIR="$HOME/.nvm"
