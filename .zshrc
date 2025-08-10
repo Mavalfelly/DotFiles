@@ -274,13 +274,13 @@ git_prompt_info() {
     local dirty=$(git status --porcelain 2>/dev/null)
     local bgcolor symbol
     if [[ -n $dirty ]]; then
-      bgcolor='%K{red}'          # Red bg for dirty repo
-      symbol='%F{white}✗%f'       # White X
+      bgcolor='%K{cyan}'          # Unified color swatch for dirty repo
+      symbol='%F{red}✗%f'         # Red X
     else
-      bgcolor='%K{green}'        # Green bg clean repo
-      symbol='%F{black}✓%f'       # Black checkmark
+      bgcolor='%K{cyan}'          # Unified color swatch for clean repo
+      symbol='%F{green}✓%f'       # Green checkmark
     fi
-    echo "%F{blue}%f%F{white}%B $branch %b%f%K{black}%f${bgcolor} $symbol %k"
+    echo "%F{black}%K{cyan} $branch ${symbol} %k%f"
   else
     echo ""
   fi
@@ -384,11 +384,14 @@ setopt PROMPT_SUBST
 
 PROMPT=''
 
-# Current time in 24h format HH:MM:SS with magenta background
-PROMPT+='%F{black}%K{magenta} %* %k%f '
+# Hostname in unified color swatch
+PROMPT+='%F{black}%K{cyan} %m %k%f '
 
-# Current directory in bold cyan
-PROMPT+='%F{cyan}%B %~ %b%f '
+# Current time in unified color swatch
+PROMPT+='%F{black}%K{cyan} %* %k%f '
+
+# Current directory in unified color swatch
+PROMPT+='%F{black}%K{cyan} %~ %k%f '
 
 # Git info block
 PROMPT+='$(git_prompt_info) '
