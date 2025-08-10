@@ -15,7 +15,7 @@ This repository contains configuration files and setup scripts for quickly provi
 
 1. **Clone this repository:**
    ```sh
-   git clone https://github.com/your-username/dotfiles.git ~/.dotfiles
+   git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles
    cd ~/.dotfiles
    ```
 
