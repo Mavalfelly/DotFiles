@@ -4,22 +4,18 @@ return {
     "nvim-neotest/nvim-nio",
     lazy = true,
   },
-
   {
     "neovim/nvim-lspconfig",
     dependencies = {
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
-      "hrsh7th/cmp-nvim-lsp", -- Add this dependency
+      "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
       local mason = require("mason")
       local mason_lspconfig = require("mason-lspconfig")
       local lspconfig = require("lspconfig")
-
-      -- Get capabilities for better completion support
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
       mason.setup({
         ui = {
           icons = {
@@ -29,7 +25,6 @@ return {
           },
         },
       })
-
       mason_lspconfig.setup({
         ensure_installed = {
           "pyright",
@@ -45,8 +40,6 @@ return {
         },
         automatic_installation = true,
       })
-
-      -- Common on_attach function for keymaps
       local on_attach = function(client, bufnr)
         local opts = { buffer = bufnr, silent = true }
         vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
@@ -67,8 +60,6 @@ return {
             on_attach = on_attach,
           })
         end,
-
-        -- Lua-specific configuration
         ["lua_ls"] = function()
           lspconfig.lua_ls.setup({
             capabilities = capabilities,
@@ -86,8 +77,6 @@ return {
             },
           })
         end,
-
-        -- Python-specific configuration
         ["pyright"] = function()
           lspconfig.pyright.setup({
             capabilities = capabilities,
@@ -102,8 +91,6 @@ return {
             },
           })
         end,
-
-        -- TypeScript-specific configuration
         ["ts_ls"] = function()
           lspconfig.ts_ls.setup({
             capabilities = capabilities,
@@ -126,7 +113,6 @@ return {
       })
     end,
   },
-
   {
     "hrsh7th/nvim-cmp",
     dependencies = {
@@ -136,13 +122,12 @@ return {
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
-      "rafamadriz/friendly-snippets", -- Additional snippets
+      "rafamadriz/friendly-snippets",
     },
     config = function()
       local cmp = require("cmp")
       local luasnip = require("luasnip")
 
-      -- Load friendly-snippets
       require("luasnip.loaders.from_vscode").lazy_load()
 
       cmp.setup({
@@ -199,7 +184,6 @@ return {
         },
       })
 
-      -- Setup for command line
       cmp.setup.cmdline("/", {
         mapping = cmp.mapping.preset.cmdline(),
         sources = {
@@ -217,7 +201,6 @@ return {
       })
     end,
   },
-
   {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
@@ -244,7 +227,6 @@ return {
             vim.keymap.set(mode, l, r, opts)
           end
 
-          -- Navigation
           map("n", "]c", function()
             if vim.wo.diff then
               return "]c"
@@ -265,7 +247,6 @@ return {
             return "<Ignore>"
           end, { expr = true })
 
-          -- Actions
           map("n", "<leader>hs", gs.stage_hunk)
           map("n", "<leader>hr", gs.reset_hunk)
           map("n", "<leader>hS", gs.stage_buffer)
@@ -281,7 +262,6 @@ return {
       })
     end,
   },
-
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
@@ -320,11 +300,7 @@ return {
           },
         },
       })
-
-      -- Load fzf extension
       telescope.load_extension("fzf")
-
-      -- Keymaps
       local builtin = require("telescope.builtin")
       vim.keymap.set("n", "<leader>ff", builtin.find_files, {})
       vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
@@ -334,7 +310,6 @@ return {
       vim.keymap.set("n", "<leader>fc", builtin.commands, {})
     end,
   },
-
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
@@ -389,13 +364,10 @@ return {
           },
         },
       })
-
-      -- Keymaps
       vim.keymap.set("n", "<leader>e", ":Neotree toggle<CR>", { silent = true })
       vim.keymap.set("n", "<leader>o", ":Neotree focus<CR>", { silent = true })
     end,
   },
-
   {
     "mfussenegger/nvim-dap",
     dependencies = {
@@ -410,8 +382,6 @@ return {
 
       dapui.setup()
       dap_virtual_text.setup()
-
-      -- Auto open/close DAP UI
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
       end
@@ -421,8 +391,6 @@ return {
       dap.listeners.before.event_exited["dapui_config"] = function()
         dapui.close()
       end
-
-      -- Python DAP configuration
       dap.adapters.python = {
         type = "executable",
         command = "python",
@@ -440,8 +408,6 @@ return {
           end,
         },
       }
-
-      -- Keymaps
       vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, {})
       vim.keymap.set("n", "<leader>dc", dap.continue, {})
       vim.keymap.set("n", "<leader>ds", dap.step_over, {})
@@ -450,7 +416,6 @@ return {
       vim.keymap.set("n", "<leader>dr", dap.repl.open, {})
     end,
   },
-
   {
     "numToStr/Comment.nvim",
     event = { "BufReadPre", "BufNewFile" },
@@ -460,7 +425,6 @@ return {
       })
     end,
   },
-
   {
     "kylechui/nvim-surround",
     event = { "BufReadPre", "BufNewFile" },
@@ -468,7 +432,6 @@ return {
       require("nvim-surround").setup()
     end,
   },
-
   {
     "windwp/nvim-autopairs",
     event = "InsertEnter",
@@ -499,7 +462,6 @@ return {
       cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
     end,
   },
-
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
@@ -516,7 +478,6 @@ return {
       })
     end,
   },
-
   {
     "folke/trouble.nvim",
     dependencies = "nvim-tree/nvim-web-devicons",
@@ -578,7 +539,6 @@ return {
       },
     },
   },
-
   {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
@@ -604,8 +564,6 @@ return {
           lsp_fallback = true,
         },
       })
-
-      -- Keymaps
       vim.keymap.set({ "n", "v" }, "<leader>cf", function()
         require("conform").format({
           lsp_fallback = true,
@@ -615,18 +573,14 @@ return {
       end, { desc = "Format file or range (in visual mode)" })
     end,
   },
-
-  -- Additional useful plugins
   {
     "JoosepAlviste/nvim-ts-context-commentstring",
     lazy = true,
   },
-
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
     dependencies = "nvim-treesitter/nvim-treesitter",
   },
-
   {
     "folke/todo-comments.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
@@ -635,7 +589,6 @@ return {
       require("todo-comments").setup()
     end,
   },
-
   {
     "akinsho/bufferline.nvim",
     version = "*",

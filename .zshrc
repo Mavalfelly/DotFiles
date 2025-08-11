@@ -3,7 +3,7 @@
 # ============================================================================
 # Complete Zsh Configuration File
 # ============================================================================
-# Author: [Felly]
+# Author: Felly
 # ============================================================================
 # ENVIRONMENT VARIABLES
 # ============================================================================
@@ -24,19 +24,7 @@ export LC_ALL="en_US.UTF-8"            # All locale categories
 # Path configuration
 export PATH="$HOME/.local/bin:$PATH"                    # Local binaries
 export PATH="$HOME/.npm-global/bin:$PATH"               # npm global packages
-# export PATH="$HOME/.cargo/bin:$PATH"                  # Rust cargo binaries
-# export PATH="$HOME/go/bin:$PATH"                      # Go binaries
-# export PATH="/usr/local/bin:$PATH"                    # Local system binaries
-# export PATH="/opt/homebrew/bin:$PATH"                 # Homebrew (macOS)
 
-# Development environment variables
-# export GOPATH="$HOME/go"                              # Go workspace
-# export GOROOT="/usr/local/go"                         # Go installation
-# export RUSTUP_HOME="$HOME/.rustup"                    # Rust toolchain
-# export CARGO_HOME="$HOME/.cargo"                      # Cargo home
-# export JAVA_HOME="/usr/lib/jvm/default-java"          # Java home
-# export ANDROID_HOME="$HOME/Android/Sdk"               # Android SDK
-# export FLUTTER_ROOT="$HOME/flutter"                   # Flutter SDK
 
 # XDG Base Directory Specification
 export XDG_CONFIG_HOME="$HOME/.config"          # Configuration files
@@ -83,7 +71,6 @@ setopt INC_APPEND_HISTORY             # Write to history file immediately
 # ZSH OPTIONS AND BEHAVIOR
 # ============================================================================
 
-# --- Directory Navigation ---
 setopt AUTO_CD                         # Just type directory name to cd
 setopt AUTO_PUSHD                      # Push directories onto stack automatically
 setopt PUSHD_IGNORE_DUPS              # Don't push duplicate directories
@@ -92,7 +79,6 @@ setopt CDABLE_VARS                    # Allow cd to variable names
 # setopt PUSHD_TO_HOME                # pushd without args goes to home
 # setopt PUSHD_MINUS                  # Exchange meaning of +/- for pushd
 
-# --- Completion System ---
 setopt AUTO_LIST                      # List choices on ambiguous completion
 setopt AUTO_MENU                      # Use menu completion after second tab
 setopt COMPLETE_IN_WORD               # Complete from both ends of word
@@ -100,14 +86,13 @@ setopt ALWAYS_TO_END                  # Move cursor to end after completion
 setopt LIST_PACKED                    # Compact completion lists
 setopt LIST_TYPES                     # Show file types in completion
 # setopt MENU_COMPLETE                # Insert first match immediately
-# setopt AUTO_PARAM_SLASH             # Add slash after completing directories
+setopt AUTO_PARAM_SLASH             # Add slash after completing directories
 # setopt AUTO_PARAM_KEYS              # Remove trailing characters if needed
 # setopt AUTO_REMOVE_SLASH            # Remove trailing slash when needed
-# setopt COMPLETE_ALIASES             # Complete aliases
+setopt COMPLETE_ALIASES             # Complete aliases
 # setopt GLOB_COMPLETE                # Generate glob matches as completions
 # setopt HASH_LIST_ALL                # Hash command path on first completion
 
-# --- Globbing and Pattern Matching ---
 setopt EXTENDED_GLOB                  # Use extended globbing syntax
 setopt GLOB_DOTS                      # Include dotfiles in globbing
 setopt NUMERIC_GLOB_SORT              # Sort numeric filenames numerically
@@ -119,7 +104,6 @@ setopt NUMERIC_GLOB_SORT              # Sort numeric filenames numerically
 # setopt BASH_GLOB                    # Use bash-style globbing
 # setopt KSH_GLOB                     # Use ksh-style globbing
 
-# --- Job Control ---
 setopt AUTO_RESUME                    # Single word commands resume jobs
 setopt LONG_LIST_JOBS                 # List jobs in long format
 setopt NOTIFY                         # Report job status immediately
@@ -128,7 +112,6 @@ setopt NOTIFY                         # Report job status immediately
 # setopt CHECK_JOBS                   # Check for jobs before exiting
 # setopt NO_CHECK_JOBS                # Don't check for jobs before exiting
 
-# --- Input/Output ---
 setopt CORRECT                        # Spell correction for commands
 setopt CORRECT_ALL                    # Spell correction for all arguments
 setopt INTERACTIVE_COMMENTS           # Allow comments in interactive shell
@@ -142,14 +125,12 @@ setopt SHORT_LOOPS                    # Allow short forms of for/repeat/select
 # setopt HASH_CMDS                    # Hash commands as they are executed
 # setopt HASH_DIRS                    # Hash directories as they are added to path
 
-# --- Prompt and Terminal ---
 setopt PROMPT_SUBST                   # Allow parameter expansion in prompts
 setopt TRANSIENT_RPROMPT              # Remove right prompt after command
 # setopt PROMPT_CR                    # Print CR before each prompt
 # setopt PROMPT_SP                    # Preserve partial line before prompt
 # setopt SINGLE_LINE_ZLE              # Use single line for line editor
 
-# --- Scripting and Functions ---
 # setopt C_BASES                      # Use 0x prefix for hex numbers
 # setopt OCTAL_ZEROES                 # Use leading zeros for octal numbers
 # setopt TYPESET_SILENT               # Don't print values when setting variables
@@ -159,7 +140,6 @@ setopt TRANSIENT_RPROMPT              # Remove right prompt after command
 # setopt FUNCTION_ARGZERO             # Set $0 to function name
 # setopt MULTI_FUNC_DEF               # Allow multiple function definitions
 
-# --- Key Bindings ---
 bindkey -e                           # Use Emacs key bindings
 # bindkey -v                         # Use Vi key bindings
 
@@ -167,11 +147,9 @@ bindkey -e                           # Use Emacs key bindings
 # COMPLETION SYSTEM SETUP
 # ============================================================================
 
-# Load and initialize completion system
 autoload -Uz compinit
 compinit
 
-# Completion styles
 zstyle ':completion:*' menu select                    # Use menu for completion
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}  # Use colors in completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'  # Case insensitive matching
@@ -180,9 +158,8 @@ zstyle ':completion:*' format 'Completing %d'        # Completion group format
 zstyle ':completion:*' group-name ''                 # Group completions
 zstyle ':completion:*' verbose yes                   # Verbose completions
 
-# Additional completion styles (commented out)
-# zstyle ':completion:*:descriptions' format '%U%B%d%b%u'  # Description format
-# zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'  # No match warning
+zstyle ':completion:*:descriptions' format '%U%B%d%b%u'  # Description format
+zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'  # No match warning
 # zstyle ':completion:*' use-cache on                 # Use completion cache
 # zstyle ':completion:*' cache-path ~/.zcompcache     # Cache location
 # zstyle ':completion:*:cd:*' ignore-parents parent pwd  # Don't complete parent dirs
@@ -193,7 +170,6 @@ zstyle ':completion:*' verbose yes                   # Verbose completions
 # ALIASES
 # ============================================================================
 
-# --- Basic Commands ---
 alias ls='ls --color=auto'            # Colorized ls
 alias ll='ls -lah'                    # Long list with hidden files
 alias la='ls -A'                      # List all except . and ..
@@ -202,15 +178,13 @@ alias grep='grep --color=auto'        # Colorized grep
 alias fgrep='fgrep --color=auto'      # Colorized fgrep
 alias egrep='egrep --color=auto'      # Colorized egrep
 
-# --- Navigation ---
 alias ..='cd ..'                      # Go up one directory
 alias ...='cd ../..'                  # Go up two directories
 alias ....='cd ../../..'              # Go up three directories
 alias .....='cd ../../../..'          # Go up four directories
-# alias ~="cd ~"                      # Go to home directory
-# alias -- -="cd -"                  # Go to previous directory
+alias ~="cd ~"                      # Go to home directory
+alias -- -="cd -"                  # Go to previous directory
 
-# --- Git Aliases ---
 alias gs='git status'                 # Git status
 alias ga='git add'                    # Git add
 alias gc='git commit'                 # Git commit
@@ -225,7 +199,6 @@ alias glog='git log --oneline --graph'  # Pretty git log
 # alias gst='git stash'               # Git stash
 # alias gsp='git stash pop'           # Git stash pop
 
-# --- System Utilities ---
 alias df='df -h'                      # Human readable df
 alias du='du -h'                      # Human readable du
 alias free='free -h'                  # Human readable free
@@ -238,47 +211,37 @@ alias tree='tree -C'                  # Colorized tree
 # alias rm='rm -i'                    # Interactive remove
 # alias ln='ln -i'                    # Interactive link
 
-# --- Editor Aliases ---
 alias vim='nvim'                      # Use neovim
 alias vi='nvim'                       # Use neovim
-# alias emacs='emacsclient -t'        # Use emacs client
-
-# --- Development Aliases ---
-# alias py='python3'                  # Python 3
-# alias pip='pip3'                    # Python 3 pip
-# alias serve='python3 -m http.server'  # Simple HTTP server
-# alias json='python3 -m json.tool'  # Pretty print JSON
-# alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
-# alias urldecode='python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'
+alias nano='nvim'                     # Use neovim as nano
 
 # --- Network Aliases ---
 # alias myip='curl -s https://ipinfo.io/ip'  # Get public IP
 # alias localip='ip route get 1.2.3.4 | awk "{print $7}"'  # Get local IP
 # alias ports='netstat -tulanp'       # Show open ports
 
-# --- Docker Aliases ---
-# alias d='docker'                    # Docker shorthand
-# alias dc='docker-compose'           # Docker compose shorthand
-# alias dps='docker ps'               # Docker process status
-# alias di='docker images'            # Docker images
-# alias dex='docker exec -it'         # Docker exec interactive
+--- Docker Aliases ---
+alias d='docker'                    # Docker shorthand
+alias dc='docker-compose'           # Docker compose shorthand
+alias dps='docker ps'               # Docker process status
+alias di='docker images'            # Docker images
+alias dex='docker exec -it'         # Docker exec interactive
 
 # ============================================================================
 # FUNCTIONS
 # ============================================================================
 
-# --- Git status prompt helper ---
 git_prompt_info() {
   if git rev-parse --is-inside-work-tree &>/dev/null; then
     local branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
     local dirty=$(git status --porcelain 2>/dev/null)
     local bgcolor symbol
     if [[ -n $dirty ]]; then
-      bgcolor='%K{red}'           # Red background for dirty repo
-      symbol='✗'                  # X symbol
+      bgcolor='%K{red}'   
+      symbol='✗'
     else
-      bgcolor='%K{green}'         # Green background for clean repo
-      symbol='✓'                  # Checkmark symbol
+      bgcolor='%K{green}'
+      symbol='✓'
     fi
     echo "%F{black}%K{cyan} ${branch} %k%f%F{black}${bgcolor} ${symbol} %k%f"
   else
@@ -286,16 +249,13 @@ git_prompt_info() {
   fi
 }
 
-# --- Command duration measurement ---
 autoload -Uz add-zsh-hook
 
 preexec() {
-  # Called before executing a command
-  CMD_START_TIME=$(date +%s%3N)  # milliseconds
+  CMD_START_TIME=$(date +%s%3N)
 }
 
 precmd() {
-  # Called before showing prompt
   if [[ -n $CMD_START_TIME ]]; then
     local now=$(date +%s%3N)
     local elapsed_ms=$(( now - CMD_START_TIME ))
@@ -309,7 +269,6 @@ precmd() {
 add-zsh-hook preexec preexec
 add-zsh-hook precmd precmd
 
-# --- Format last command duration ---
 last_cmd_duration() {
   if [[ -n $CMD_DURATION && $CMD_DURATION -gt 0 ]]; then
     local ms=$CMD_DURATION
@@ -328,7 +287,6 @@ last_cmd_duration() {
   fi
 }
 
-# --- Show last command exit status ---
 last_cmd_status() {
   local code=$?
   if (( code == 0 )); then
@@ -384,35 +342,27 @@ setopt PROMPT_SUBST
 
 PROMPT=''
 
-# Hostname in yellow (p10k style)
 PROMPT+='%F{black}%K{yellow} %m %k%f'
 
-# Current time in cyan (p10k style)
 PROMPT+='%F{black}%K{cyan} %* %k%f'
 
-# Current directory in blue (p10k style)
 PROMPT+='%F{black}%K{blue} %~ %k%f'
 
-# Git info block
 PROMPT+='$(git_prompt_info) '
 
-# Last command duration with cyan background
 PROMPT+='%F{black}%K{cyan} $(last_cmd_duration) %k%f'
 
-# Last command exit status with appropriate background
 PROMPT+='$(last_cmd_status) '
 
-# Arrow prompt in bright colors
 PROMPT+='%F{%(?.blue.red)}➜ %f'
 
-# Right prompt (disabled by default)
-# RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
+Right prompt (disabled by default)
+RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
 
 # ============================================================================
 # ZINIT PLUGIN MANAGER SETUP
 # ============================================================================
 
-# Install Zinit if not already installed
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
     print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
     command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
@@ -427,7 +377,6 @@ source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 # PLUGIN CONFIGURATION
 # ============================================================================
 
-# --- Essential Productivity Plugins ---
 zinit ice wait lucid
 zinit light zsh-users/zsh-autosuggestions      # Fish-like autosuggestions
 
@@ -456,14 +405,12 @@ zinit light wfxr/forgit                      # Interactive git commands
 # zinit light spaceship-prompt/spaceship-prompt          # Spaceship theme
 # zinit light sindresorhus/pure                          # Pure theme
 
-# --- Load Zinit annexes ---
 zinit light-mode for \
     zdharma-continuum/zinit-annex-as-monitor \
     zdharma-continuum/zinit-annex-bin-gem-node \
     zdharma-continuum/zinit-annex-patch-dl \
     zdharma-continuum/zinit-annex-rust
 
-# Initialize completion system for zinit
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
@@ -471,18 +418,13 @@ autoload -Uz _zinit
 # ADDITIONAL TOOL CONFIGURATIONS
 # ============================================================================
 
-# --- FZF Configuration ---
-# if command -v fzf &> /dev/null; then
-#   export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-#   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-#   export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
-#   export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
-# fi
+if command -v fzf &> /dev/null; then
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+  export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+fi
 
-# --- Node Version Manager (NVM) ---
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
 # --- Python Virtual Environment ---
 # if command -v python3 &> /dev/null; then
@@ -490,21 +432,6 @@ autoload -Uz _zinit
 #   export PATH="$PYENV_ROOT/bin:$PATH"
 #   if command -v pyenv &> /dev/null; then
 #     eval "$(pyenv init -)"
-#   fi
-# fi
-
-# --- Ruby Version Manager (RVM) ---
-# [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
-
-# --- Rust Environment ---
-# [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-
-# --- Homebrew (macOS) ---
-# if [[ "$OSTYPE" == "darwin"* ]]; then
-#   if [[ -f "/opt/homebrew/bin/brew" ]]; then
-#     eval "$(/opt/homebrew/bin/brew shellenv)"
-#   elif [[ -f "/usr/local/bin/brew" ]]; then
-#     eval "$(/usr/local/bin/brew shellenv)"
 #   fi
 # fi
 
