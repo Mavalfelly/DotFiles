@@ -4,17 +4,28 @@
 # ============================================================================
 # Author: Mavalfelly
 # Repository: DotFiles
-# Last Modified: 2025-08-09
+# Last Modified: 2025-08-10
+#
+# This script assumes you've already cloned the dotfiles repo to ~/.dotfiles:
+# git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles
 #
 # This script will automatically:
-# 1. Install ZSH and set it as default shell
-# 2. Install Neovim and development tools
-# 3. Install Node.js, Python, Java and their package managers
-# 4. Configure all environment variables and paths
-# 5. Set up the development environment
+# 1. Clean existing configurations
+# 2. Install ZSH and set it as default shell
+# 3. Install Neovim and development tools
+# 4. Install Node.js, Python, Java and their package managers
+# 5. Configure all environment variables and paths
+# 6. Set up the development environment from ~/.dotfiles
 # ============================================================================
 
 set -e  # Exit on error
+
+# Check if dotfiles repo exists
+if [ ! -d "$HOME/.dotfiles" ]; then
+    echo "❌ DotFiles repository not found at ~/.dotfiles"
+    echo "Please run: git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles"
+    exit 1
+fi
 
 # Detect Debian-based Distribution
 if [ ! -f /etc/os-release ]; then
@@ -29,6 +40,169 @@ if [[ "$OS" != *"debian"* ]]; then
     echo "This script only supports Debian-based systems"
     exit 1
 fi
+
+# Clean shell configuration files
+clean_shell_configs() {
+    echo "▶ Cleaning existing shell configuration files..."
+    
+    # Backup existing configs if they exist
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_dir="$HOME/.config_backup_$timestamp"
+    
+    if [[ -f "$HOME/.zshrc" || -f "$HOME/.bashrc" || -f "$HOME/.profile" ]]; then
+        echo "  Creating backup at $backup_dir"
+        mkdir -p "$backup_dir"
+        
+        # Backup existing files
+        [[ -f "$HOME/.zshrc" ]] && cp "$HOME/.zshrc" "$backup_dir/.zshrc"
+        [[ -f "$HOME/.bashrc" ]] && cp "$HOME/.bashrc" "$backup_dir/.bashrc"
+        [[ -f "$HOME/.profile" ]] && cp "$HOME/.profile" "$backup_dir/.profile"
+        [[ -f "$HOME/.bash_profile" ]] && cp "$HOME/.bash_profile" "$backup_dir/.bash_profile"
+        [[ -f "$HOME/.zshenv" ]] && cp "$HOME/.zshenv" "$backup_dir/.zshenv"
+    fi
+    
+    # Remove shell config files
+    rm -f "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile" "$HOME/.bash_logout"
+    rm -f "$HOME/.zshrc" "$HOME/.zshenv" "$HOME/.zprofile" "$HOME/.zlogin" "$HOME/.zlogout"
+    rm -f "$HOME/.inputrc"
+    
+    # Remove shell frameworks and plugins
+    rm -rf "$HOME/.oh-my-zsh"
+    rm -rf "$HOME/.antigen"
+    rm -rf "$HOME/.zinit"
+    rm -rf "$HOME/.zplug"
+    rm -rf "$HOME/.zsh"
+    
+    echo "  Shell configs cleaned"
+}
+
+# Clean Neovim directories and configs
+clean_neovim() {
+    echo "▶ Cleaning Neovim installations and configurations..."
+    
+    # Remove APT package if installed
+    sudo apt-get remove -y neovim neovim-runtime 2>/dev/null || true
+    sudo apt-get purge -y neovim neovim-runtime 2>/dev/null || true
+    sudo apt-get autoremove -y
+    
+    # Clean up any previous source builds
+    sudo rm -f /usr/local/bin/nvim
+    sudo rm -rf /usr/local/share/nvim/
+    sudo rm -rf /usr/local/lib/nvim/
+    
+    # Remove user configurations
+    rm -rf "$HOME/.config/nvim"
+    rm -rf "$HOME/.local/share/nvim"
+    rm -rf "$HOME/.local/state/nvim"
+    rm -rf "$HOME/.cache/nvim"
+    
+    # Clean up build directories
+    rm -rf "/tmp/neovim"
+    
+    echo "  Neovim cleanup completed"
+}
+
+# Clean Node.js installations
+clean_nodejs() {
+    echo "▶ Cleaning Node.js installations and configurations..."
+    
+    # Remove system packages
+    sudo apt-get remove -y nodejs npm 2>/dev/null || true
+    sudo apt-get autoremove -y
+    
+    # Remove NodeSource repository
+    sudo rm -f /etc/apt/sources.list.d/nodesource.list
+    sudo rm -f /usr/share/keyrings/nodesource.gpg
+    
+    # Remove user directories
+    rm -rf "$HOME/.nvm"
+    rm -rf "$HOME/.npm"
+    rm -rf "$HOME/.npm-packages"
+    rm -rf "$HOME/.npm-global"
+    rm -rf "$HOME/.node-gyp"
+    rm -rf "$HOME/.yarn"
+    rm -rf "$HOME/.pnpm-store"
+    rm -rf "$HOME/.cache/npm"
+    rm -rf "$HOME/.cache/yarn"
+    rm -rf "$HOME/.cache/pnpm"
+    
+    # Remove global binaries
+    sudo rm -f /usr/local/bin/node
+    sudo rm -f /usr/local/bin/npm
+    sudo rm -f /usr/local/bin/npx
+    sudo rm -f /usr/local/bin/yarn
+    sudo rm -f /usr/local/bin/pnpm
+    sudo rm -f /usr/local/bin/tsc
+    sudo rm -f /usr/local/bin/ts-node
+    
+    # Unset environment variables
+    unset NPM_CONFIG_PREFIX
+    unset NPM_CONFIG_GLOBALCONFIG
+    unset NPM_CONFIG_INIT_MODULE
+    unset NVM_DIR
+    
+    echo "  Node.js cleanup completed"
+}
+
+# Clean Python installations
+clean_python() {
+    echo "▶ Cleaning Python installations and configurations..."
+    
+    # Remove system packages (keep system python3)
+    sudo apt-get remove -y python2* python3-pip python3-dev python3-venv 2>/dev/null || true
+    sudo apt-get autoremove -y
+    
+    # Remove user directories
+    rm -rf "$HOME/.pyenv"
+    rm -rf "$HOME/.poetry"
+    rm -rf "$HOME/.local/share/pypoetry"
+    rm -rf "$HOME/.cache/pypoetry"
+    rm -rf "$HOME/.local/lib/python*"
+    rm -rf "$HOME/.local/share/virtualenv"
+    rm -rf "$HOME/.cache/pip"
+    rm -rf "$HOME/.cache/pypoetry"
+    
+    # Remove global binaries
+    sudo rm -f /usr/local/bin/python*
+    sudo rm -f /usr/local/bin/pip*
+    sudo rm -f /usr/local/bin/poetry
+    
+    # Unset environment variables
+    unset PYENV_ROOT
+    unset PYENV_VERSION
+    unset POETRY_HOME
+    
+    echo "  Python cleanup completed"
+}
+
+# Clean Java installations
+clean_java() {
+    echo "▶ Cleaning Java installations and configurations..."
+    
+    # Remove system packages
+    sudo apt-get remove -y default-jdk default-jre openjdk* oracle-java* 2>/dev/null || true
+    sudo apt-get autoremove -y
+    
+    # Remove user directories
+    rm -rf "$HOME/.sdkman"
+    rm -rf "$HOME/.gradle"
+    rm -rf "$HOME/.m2"
+    rm -rf "$HOME/.cache/gradle"
+    
+    # Remove system directories
+    sudo rm -rf /usr/lib/jvm/*
+    
+    # Remove global binaries
+    sudo rm -f /usr/local/bin/java
+    sudo rm -f /usr/local/bin/javac
+    sudo rm -f /usr/local/bin/jar
+    
+    # Unset environment variables
+    unset JAVA_HOME
+    unset SDKMAN_DIR
+    
+    echo "  Java cleanup completed"
+}
 
 # Install basic dependencies
 install_dependencies() {
@@ -47,19 +221,6 @@ install_dependencies() {
 
 # Install Neovim from source and set up LazyVim
 install_neovim() {
-    echo "▶ Removing existing Neovim installations..."
-    # Remove APT package if installed
-    sudo apt-get remove -y neovim neovim-runtime
-    sudo apt-get purge -y neovim neovim-runtime
-    sudo apt-get autoremove -y
-    
-    # Clean up any previous source builds
-    rm -rf "/tmp/neovim"
-    
-    # Remove any existing source build
-    sudo rm -f /usr/local/bin/nvim
-    sudo rm -rf /usr/local/share/nvim/
-    
     echo "▶ Installing Neovim build dependencies..."
     sudo apt-get install -y ninja-build gettext cmake unzip curl git build-essential
 
@@ -77,10 +238,7 @@ install_neovim() {
     # Verify installation
     nvim --version
 
-    echo "▶ Setting up LazyVim..."
-    # Clean existing Neovim configs
-    rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
-
+    echo "▶ Setting up LazyVim with custom config..."
     # Create required directory
     mkdir -p "$HOME/.config/nvim"
 
@@ -88,8 +246,13 @@ install_neovim() {
     git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"
     rm -rf "$HOME/.config/nvim/.git"  # Remove git repo to allow for own version control
 
-    # Copy our custom Neovim config files
-    cp -r "$HOME/.dotfiles/.config/nvim/"* "$HOME/.config/nvim/"
+    # Copy our custom Neovim config files from dotfiles repo
+    if [ -d "$HOME/.dotfiles/.config/nvim" ]; then
+        echo "  Copying custom Neovim config from ~/.dotfiles"
+        cp -r "$HOME/.dotfiles/.config/nvim/"* "$HOME/.config/nvim/"
+    else
+        echo "  No custom Neovim config found in ~/.dotfiles/.config/nvim"
+    fi
 
     echo "LazyVim setup complete. First run will install plugins automatically."
     
@@ -109,26 +272,8 @@ setup_zsh() {
     fi
 }
 
-# Install Node.js via nvm
+# Install Node.js via NodeSource
 install_node() {
-    echo "▶ Cleaning up Node.js-related directories..."
-    rm -rf "$HOME/.nvm"                 # Remove nvm (not needed anymore)
-    rm -rf "$HOME/.npm"
-    rm -rf "$HOME/.npm-packages"
-    rm -rf "$HOME/.npm-global"          # Will be recreated by new installation
-    rm -rf "$HOME/.node-gyp"
-    rm -rf "$HOME/.yarn"
-    rm -rf "$HOME/.pnpm-store"
-    
-    # Remove NodeSource repository if it exists
-    sudo rm -f /etc/apt/sources.list.d/nodesource.list
-    sudo rm -f /usr/share/keyrings/nodesource.gpg
-    
-    # Also unset environment variables
-    unset NPM_CONFIG_PREFIX
-    unset NPM_CONFIG_GLOBALCONFIG
-    unset NPM_CONFIG_INIT_MODULE
-    
     echo "▶ Installing Node.js from NodeSource repository..."
     
     # Add NodeSource repository for latest LTS
@@ -158,9 +303,6 @@ install_node() {
     
     # Add npm global bin to PATH for this session
     export PATH="$HOME/.npm-global/bin:$PATH"
-    
-    # Add to shell profiles for persistence
-    echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.bashrc"
     
     echo "▶ Installing global npm packages..."
     npm install -g yarn pnpm typescript ts-node
@@ -195,12 +337,6 @@ install_node() {
 
 # Install Python via pyenv
 install_python() {
-    echo "▶ Cleaning up previous Python installations..."
-    rm -rf "$HOME/.pyenv"
-    rm -rf "$HOME/.poetry"
-    rm -rf "$HOME/.local/share/pypoetry"
-    rm -rf "$HOME/.cache/pypoetry"
-    
     echo "▶ Installing Python Version Manager (pyenv)..."
     curl https://pyenv.run | bash
     
@@ -210,132 +346,68 @@ install_python() {
     eval "$(pyenv init - bash)"
     eval "$(pyenv virtualenv-init -)"
     
-    # Add pyenv to shell rc files
-    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-    echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-    echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
-    
-    # Also add to profile for login shells
-    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile
-    echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile
-    echo 'eval "$(pyenv init -)"' >> ~/.profile
-    
-    # Reload shell environment
-    source ~/.bashrc
-    
     echo "▶ Installing latest stable Python version..."
     pyenv install $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
     pyenv global $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
     
-    # Add local bin to PATH for Python packages
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-    export PATH="$HOME/.local/bin:$PATH"
+    echo "▶ Installing Poetry..."
+    curl -sSL https://install.python-poetry.org | python3 -
+    
+    echo "✅ Python installation completed successfully!"
 }
 
 # Install Java via SDKMAN
 install_java() {
-    echo "▶ Cleaning up previous Java installations..."
-    rm -rf "$HOME/.sdkman"
-    
     echo "▶ Installing SDKMAN..."
     curl -s "https://get.sdkman.io" | bash
     source "$HOME/.sdkman/bin/sdkman-init.sh"
     
     echo "▶ Installing latest Java 21..."
     sdk install java $(sdk list java | grep -o "21\.[0-9.]*-amzn" | head -1)
+    
+    echo "✅ Java installation completed successfully!"
 }
 
-# Setup dotfiles
+# Setup dotfiles from the cloned repository
 setup_dotfiles() {
-    echo "▶ Creating configuration directories..."
+    echo "▶ Setting up dotfiles from ~/.dotfiles..."
+    
     # Create necessary directories
-    mkdir -p "$HOME/.config/nvim"
+    mkdir -p "$HOME/.config"
     mkdir -p "$HOME/.local/share/zinit"
     
-    # Backup existing configs
-    [ -f "$HOME/.zshrc" ] && mv "$HOME/.zshrc" "$HOME/.zshrc.backup"
+    # Copy .zshrc from dotfiles repo
+    if [ -f "$HOME/.dotfiles/.zshrc" ]; then
+        echo "  Copying .zshrc from ~/.dotfiles"
+        cp "$HOME/.dotfiles/.zshrc" "$HOME/.zshrc"
+    else
+        echo "  ⚠️  .zshrc not found in ~/.dotfiles"
+    fi
     
-    # Copy this file as .zshrc
-    cp "$0" "$HOME/.zshrc"
+    # Copy Neovim config from dotfiles repo (if not already done)
+    if [ -d "$HOME/.dotfiles/.config/nvim" ] && [ ! -d "$HOME/.config/nvim" ]; then
+        echo "  Copying Neovim config from ~/.dotfiles"
+        cp -r "$HOME/.dotfiles/.config/nvim" "$HOME/.config/"
+    elif [ -d "$HOME/.dotfiles/.config/nvim" ]; then
+        echo "  Updating Neovim config from ~/.dotfiles"
+        rm -rf "$HOME/.config/nvim"
+        cp -r "$HOME/.dotfiles/.config/nvim" "$HOME/.config/"
+    fi
     
-    # Remove the installation script part (everything before # ENVIRONMENT VARIABLES)
-    sed -i '1,/# ENVIRONMENT VARIABLES/d' "$HOME/.zshrc"
-}
-
-# Cleanup old shell configurations
-cleanup_old_configs() {
-    echo "▶ Removing old shell configuration files..."
+    # Copy any other config files that might exist
+    if [ -d "$HOME/.dotfiles/.config" ]; then
+        echo "  Copying additional configs from ~/.dotfiles/.config"
+        # Copy everything except nvim (already handled above)
+        for item in "$HOME/.dotfiles/.config"/*; do
+            if [ -d "$item" ] && [ "$(basename "$item")" != "nvim" ]; then
+                cp -r "$item" "$HOME/.config/"
+            elif [ -f "$item" ]; then
+                cp "$item" "$HOME/.config/"
+            fi
+        done
+    fi
     
-    # Remove old shell config files
-    rm -f ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.bash_logout
-    rm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.zlogout
-    rm -f ~/.inputrc ~/.bash_history ~/.zsh_history
-    
-    # Remove old package managers and their configs
-    rm -rf ~/.oh-my-zsh ~/.antigen ~/.zinit ~/.zplug
-    rm -rf ~/.sdkman ~/.nvm ~/.pyenv
-    
-    # Remove old shell plugins
-    rm -rf ~/.zsh ~/.bash-completion
-    
-    # Clean apt packages (for Debian/Ubuntu)
-    echo "Removing old shell-related packages..."
-    sudo apt remove -y fish tcsh ksh bash-completion zsh-syntax-highlighting zsh-autosuggestions 2>/dev/null || true
-    sudo apt autoremove -y
-}
-
-# Clean installation directories
-cleanup_install_dirs() {
-    echo "▶ Cleaning up previous installations..."
-    
-    echo "▶ Removing system-level packages..."
-    # Remove system Python installations (except system python3)
-    sudo apt-get remove -y python2* python3-pip python3-dev python3-venv
-    # Remove Node.js and npm
-    sudo apt-get remove -y nodejs npm
-    # Remove Java
-    sudo apt-get remove -y default-jdk default-jre openjdk* oracle-java*
-    sudo apt-get autoremove -y
-    
-    echo "▶ Cleaning up Python-related directories..."
-    rm -rf "$HOME/.pyenv"
-    rm -rf "$HOME/.poetry"
-    rm -rf "$HOME/.local/share/pypoetry"
-    rm -rf "$HOME/.cache/pypoetry"
-    rm -rf "$HOME/.local/lib/python*"
-    rm -rf "$HOME/.local/share/virtualenv"
-    rm -rf "$HOME/.cache/pip"
-    
-    echo "▶ Cleaning up Node.js-related directories..."
-    rm -rf "$HOME/.nvm"
-    rm -rf "$HOME/.npm"
-    rm -rf "$HOME/.npm-packages"
-    rm -rf "$HOME/.npm-global"          # Fixed: Added this line
-    rm -rf "$HOME/.node-gyp"
-    rm -rf "$HOME/.yarn"
-    rm -rf "$HOME/.pnpm-store"
-    
-    # Also unset environment variables
-    unset NPM_CONFIG_PREFIX
-    unset NPM_CONFIG_GLOBALCONFIG
-    unset NPM_CONFIG_INIT_MODULE
-    
-    echo "▶ Cleaning up Java-related directories..."
-    rm -rf "$HOME/.sdkman"
-    rm -rf "$HOME/.gradle"
-    rm -rf "$HOME/.m2"
-    sudo rm -rf /usr/lib/jvm/*
-    
-    echo "▶ Cleaning up temporary directories..."
-    rm -rf "/tmp/neovim"
-    rm -rf "/tmp/poetry-installer-*"
-    rm -rf "/tmp/node-*"
-    rm -rf "/tmp/npm-*"
-    rm -rf "/tmp/pyenv-*"
-    
-    echo "▶ Removing any leftover binaries..."
-    sudo rm -f /usr/local/bin/{node,npm,python*,pip*,java,javac}
+    echo "✅ Dotfiles setup completed successfully!"
 }
 
 # Print stage header
@@ -354,14 +426,44 @@ declare -A install_status
 main() {
     local start_time=$(date +%s)
     
-    print_stage "CLEANING UP INSTALLATIONS"
-    cleanup_install_dirs
+    echo "================================================================"
+    echo "  DOTFILES INSTALLATION STARTING"
+    echo "  Repository: ~/.dotfiles"
+    echo "================================================================"
     
-    print_stage "CLEANING OLD CONFIGURATIONS"
-    if cleanup_old_configs; then
-        install_status["cleanup"]="✓ Success"
+    print_stage "CLEANING SHELL CONFIGURATIONS"
+    if clean_shell_configs; then
+        install_status["shell_cleanup"]="✓ Success"
     else
-        install_status["cleanup"]="✗ Failed"
+        install_status["shell_cleanup"]="✗ Failed"
+    fi
+    
+    print_stage "CLEANING NEOVIM"
+    if clean_neovim; then
+        install_status["neovim_cleanup"]="✓ Success"
+    else
+        install_status["neovim_cleanup"]="✗ Failed"
+    fi
+    
+    print_stage "CLEANING NODE.JS"
+    if clean_nodejs; then
+        install_status["nodejs_cleanup"]="✓ Success"
+    else
+        install_status["nodejs_cleanup"]="✗ Failed"
+    fi
+    
+    print_stage "CLEANING PYTHON"
+    if clean_python; then
+        install_status["python_cleanup"]="✓ Success"
+    else
+        install_status["python_cleanup"]="✗ Failed"
+    fi
+    
+    print_stage "CLEANING JAVA"
+    if clean_java; then
+        install_status["java_cleanup"]="✓ Success"
+    else
+        install_status["java_cleanup"]="✗ Failed"
     fi
     
     print_stage "INSTALLING DEPENDENCIES"
@@ -371,13 +473,6 @@ main() {
         install_status["dependencies"]="✗ Failed"
     fi
     
-    print_stage "INSTALLING NODE.JS"
-    if install_node; then
-        install_status["node"]="✓ Success"
-    else
-        install_status["node"]="✗ Failed"
-    fi
-
     print_stage "INSTALLING NEOVIM"
     if install_neovim; then
         install_status["neovim"]="✓ Success"
@@ -390,6 +485,13 @@ main() {
         install_status["zsh"]="✓ Success"
     else
         install_status["zsh"]="✗ Failed"
+    fi
+    
+    print_stage "INSTALLING NODE.JS"
+    if install_node; then
+        install_status["node"]="✓ Success"
+    else
+        install_status["node"]="✗ Failed"
     fi
     
     print_stage "INSTALLING PYTHON"
@@ -421,8 +523,12 @@ main() {
     echo "================================================================"
     echo "                    INSTALLATION REPORT"
     echo "================================================================"
-    echo "Cleanup:              ${install_status["cleanup"]}"
-    echo "Dependencies:         ${install_status["dependencies"]}"
+    echo "Shell Cleanup:       ${install_status["shell_cleanup"]}"
+    echo "Neovim Cleanup:      ${install_status["neovim_cleanup"]}"
+    echo "Node.js Cleanup:     ${install_status["nodejs_cleanup"]}"
+    echo "Python Cleanup:      ${install_status["python_cleanup"]}"
+    echo "Java Cleanup:        ${install_status["java_cleanup"]}"
+    echo "Dependencies:        ${install_status["dependencies"]}"
     echo "Neovim:              ${install_status["neovim"]}"
     echo "Zsh:                 ${install_status["zsh"]}"
     echo "Node.js:             ${install_status["node"]}"
@@ -433,7 +539,8 @@ main() {
     echo "Total Duration:      ${duration} seconds"
     echo "----------------------------------------------------------------"
     echo
-    echo "Installation complete! Please restart your shell."
+    echo "🎉 Installation complete!"
+    echo "Please restart your terminal or run: exec zsh"
     echo "================================================================"
 }
 
@@ -448,26 +555,18 @@ fi
 #
 # Quick setup for new machine:
 #
-# 1. Install zsh and make it default:
-#    sudo apt install zsh && chsh -s $(which zsh)
+# 1. Clone dotfiles repository:
+#    git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles
 #
-# 2. Install essential tools:
-#    sudo apt install git curl wget fd-find ripgrep fzf htop tree neovim
+# 2. Run the installation script:
+#    cd ~/.dotfiles && chmod +x install.sh && ./install.sh
 #
-# 3. Install development environments:
-#    # Node.js/JavaScript
-#    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-#    
-#    # Python
-#    curl https://pyenv.run | bash
-#    curl -sSL https://install.python-poetry.org | python3 -
-#    
-#    # Java
-#    curl -s "https://get.sdkman.io" | bash
+# 3. Restart your terminal or run:
+#    exec zsh
 #
-# 4. Clone your dotfiles and setup:
-#    git clone [your-repo] ~/dotfiles
-#    ln -sf ~/dotfiles/.zshrc ~/.zshrc
-#    source ~/.zshrc
+# The script will automatically:
+# - Clean all existing configurations
+# - Install and configure all development tools
+# - Set up your custom dotfiles from the repository
 #
 # ============================================================================
