@@ -7,7 +7,7 @@ vim.opt.autowrite = true -- Auto save before commands like :next
 vim.opt.confirm = true -- Confirm unsaved changes on quit
 vim.opt.hidden = true -- Hide buffers with unsaved changes
 vim.opt.history = 1000 -- Command history size
-vim.opt.lazyredraw = true -- Don't redraw while executing macros
+vim.opt.lazyredraw = false -- Don't redraw while executing macros
 
 -- UI & DISPLAY
 vim.opt.number = true -- Show absolute line numbers
@@ -88,7 +88,6 @@ vim.opt.spelllang = { "en_us" } -- Spellcheck language
 
 -- MISCELLANEOUS
 vim.opt.updatetime = 300 -- Faster CursorHold events (default 4000ms)
-vim.opt.lazyredraw = true -- Don't redraw while running macros
 vim.opt.modeline = true -- Enable modelines
 vim.opt.modelines = 5 -- Number of lines to check for modelines
 vim.opt.formatoptions = "tcqnj" -- Format options (autoformatting, comments)

@@ -520,29 +520,41 @@ return {
   {
     "folke/trouble.nvim",
     dependencies = "nvim-tree/nvim-web-devicons",
-    config = function()
-      require("trouble").setup({
-        icons = false,
-        fold_open = "v",
-        fold_closed = ">",
-        indent_lines = false,
-        signs = {
-          error = "error",
-          warning = "warn",
-          hint = "hint",
-          information = "info",
-        },
-      })
-
-      -- Keymaps
-      vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>", { silent = true })
-      vim.keymap.set("n", "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>", { silent = true })
-      vim.keymap.set("n", "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>", { silent = true })
-      vim.keymap.set("n", "<leader>xl", "<cmd>TroubleToggle loclist<cr>", { silent = true })
-      vim.keymap.set("n", "<leader>xq", "<cmd>TroubleToggle quickfix<cr>", { silent = true })
-    end,
+    opts = {
+      fold_open = "v",
+      fold_closed = ">",
+      indent_lines = false,
+      signs = {
+        error = "error",
+        warning = "warn", 
+        hint = "hint",
+        information = "info",
+      },
+    },
+    cmd = "Trouble",
+    keys = {
+      {
+        "<leader>xx",
+        "<cmd>Trouble diagnostics toggle<cr>",
+        desc = "Diagnostics (Trouble)",
+      },
+      {
+        "<leader>xX", 
+        "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+        desc = "Buffer Diagnostics (Trouble)",
+      },
+      {
+        "<leader>xL",
+        "<cmd>Trouble loclist toggle<cr>",
+        desc = "Location List (Trouble)",
+      },
+      {
+        "<leader>xQ",
+        "<cmd>Trouble qflist toggle<cr>",
+        desc = "Quickfix List (Trouble)",
+      },
+    },
   },
-
   {
     "lukas-reineke/indent-blankline.nvim",
     main = "ibl",
