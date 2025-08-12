@@ -1,5 +1,7 @@
 -- ~/.config/nvim/lua/plugins/init.lua
 return {
+  { "nvim-tree/nvim-tree.lua", enabled = false },
+
   {
     "nvim-neotest/nvim-nio",
     lazy = true,
@@ -122,7 +124,8 @@ return {
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
-      "rafamadriz/friendly-snippets",
+      "rafamadriz/friendly-snippets", -- Additional snippets
+      "windwp/nvim-autopairs",
     },
     config = function()
       local cmp = require("cmp")
@@ -199,6 +202,10 @@ return {
           { name = "cmdline" },
         }),
       })
+
+      -- Integration with nvim-autopairs
+      local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+      cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
     end,
   },
   {
@@ -456,11 +463,7 @@ return {
         },
       })
 
-      -- Integration with nvim-cmp
-      local cmp_autopairs = require("nvim-autopairs.completion.cmp")
-      local cmp = require("cmp")
-      cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-    end,
+      end,
   },
   {
     "folke/which-key.nvim",
