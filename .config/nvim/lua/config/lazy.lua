@@ -26,17 +26,6 @@ require("lazy").setup({
   },
   install = {
     colorscheme = { "tokyonight", "habamax" },
-    -- Other popular colorschemes you might want to try:
-    -- "catppuccin" - Modern and elegant theme with multiple flavors
-    -- "gruvbox" - Retro groove color scheme
-    -- "nord" - Arctic, north-bluish color palette
-    -- "onedark" - Atom's iconic dark theme
-    -- "dracula" - Dark theme inspired by Dracula
-    -- "nightfox" - Collection of dark themes (nightfox, duskfox, etc.)
-    -- "everforest" - Green-based colorscheme
-    -- "rose-pine" - Soho vibes for Neovim
-    -- "kanagawa" - Dark theme inspired by the Great Wave
-    -- "solarized" - Precision colors for machines and people
   },
   checker = {
     enabled = true,
