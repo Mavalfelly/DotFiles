@@ -236,9 +236,9 @@ git_prompt_info() {
     local branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
     local dirty=$(git status --porcelain 2>/dev/null)
     if [[ -n $dirty ]]; then
-      echo "%F{220} ${branch} %F{196}✗%f"
+      echo "%F{0} ${branch} %F{196}✗%f"
     else
-      echo "%F{118} ${branch}%f"
+      echo "%F{0} ${branch}%f"
     fi
   fi
 }
@@ -270,9 +270,9 @@ last_cmd_duration() {
 last_cmd_status() {
   local code=$?
   if (( code == 0 )); then
-    echo "%F{118}✔%f"
+    echo "%F{0}✔%f"
   else
-    echo "%F{196}✘ $code%f"
+    echo "%F{0}✘ $code%f"
   fi
 }
 
@@ -340,7 +340,7 @@ setopt PROMPT_SUBST
 PROMPT='$(build_prompt)'
 PROMPT+=$'\n''%F{39}❯%f '
 
-RPROMPT='%F{244}$(greeting) %D{%H:%M:%S}%f'
+RPROMPT='%F{255}$(greeting) %D{%H:%M:%S}%f'
 
 
 # --- Utility Functions (commented out examples) ---
