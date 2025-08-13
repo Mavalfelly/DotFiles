@@ -220,12 +220,12 @@ alias nano='nvim'                     # Use neovim as nano
 # alias localip='ip route get 1.2.3.4 | awk "{print $7}"'  # Get local IP
 # alias ports='netstat -tulanp'       # Show open ports
 
---- Docker Aliases ---
-alias d='docker'                    # Docker shorthand
-alias dc='docker-compose'           # Docker compose shorthand
-alias dps='docker ps'               # Docker process status
-alias di='docker images'            # Docker images
-alias dex='docker exec -it'         # Docker exec interactive
+# --- Docker Aliases ---
+# alias d='docker'                    # Docker shorthand
+# alias dc='docker-compose'           # Docker compose shorthand
+# alias dps='docker ps'               # Docker process status
+# alias di='docker images'            # Docker images
+# alias dex='docker exec -it'         # Docker exec interactive
 
 # ============================================================================
 # FUNCTIONS
@@ -235,54 +235,34 @@ git_prompt_info() {
   if git rev-parse --is-inside-work-tree &>/dev/null; then
     local branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
     local dirty=$(git status --porcelain 2>/dev/null)
-    local bgcolor symbol
     if [[ -n $dirty ]]; then
-      bgcolor='%K{red}'   
-      symbol='✗'
+      echo "%F{220} ${branch} %F{196}✗%f"
     else
-      bgcolor='%K{green}'
-      symbol='✓'
+      echo "%F{118} ${branch}%f"
     fi
-    echo "%F{black}%K{cyan} ${branch} %k%f%F{black}${bgcolor} ${symbol} %k%f"
-  else
-    echo ""
   fi
 }
-
-autoload -Uz add-zsh-hook
-
-preexec() {
-  CMD_START_TIME=$(date +%s%3N)
-}
-
-precmd() {
-  if [[ -n $CMD_START_TIME ]]; then
-    local now=$(date +%s%3N)
-    local elapsed_ms=$(( now - CMD_START_TIME ))
-    CMD_DURATION=$elapsed_ms
-  else
-    CMD_DURATION=0
-  fi
-  unset CMD_START_TIME
-}
-
-add-zsh-hook preexec preexec
-add-zsh-hook precmd precmd
 
 last_cmd_duration() {
-  if [[ -n $CMD_DURATION && $CMD_DURATION -gt 0 ]]; then
+  if [[ -n $CMD_DURATION && $CMD_DURATION -gt 50 ]]; then
     local ms=$CMD_DURATION
     local sec=$(( ms / 1000 ))
     local rem_ms=$(( ms % 1000 ))
+    local emoji
+
+    if (( sec > 60 )); then emoji="⏳"
+    elif (( sec > 10 )); then emoji="⌛"
+    elif (( sec > 3 )); then emoji="🕒"
+    else emoji="⚡"; fi
 
     if (( sec > 59 )); then
       local min=$(( sec / 60 ))
       sec=$(( sec % 60 ))
-      printf "⏱ %dm%02ds" $min $sec
+      printf "%s %dm%02ds" $emoji $min $sec
     elif (( sec > 0 )); then
-      printf "⏱ %ds" $sec
+      printf "%s %d.%03ds" $emoji $sec $rem_ms
     else
-      printf "⏱ %dms" $ms
+      printf "%s %dms" $emoji $ms
     fi
   fi
 }
@@ -290,11 +270,78 @@ last_cmd_duration() {
 last_cmd_status() {
   local code=$?
   if (( code == 0 )); then
-    echo "%F{black}%K{green} ✔ %k%f"
+    echo "%F{118}✔%f"
   else
-    echo "%F{white}%K{red} ✘ $code %k%f"
+    echo "%F{196}✘ $code%f"
   fi
 }
+
+greeting() {
+  local hour=$(date +%H)
+  if (( hour < 5 )); then echo "🌙"
+  elif (( hour < 12 )); then echo "🌅"
+  elif (( hour < 18 )); then echo "☀️"
+  else echo "🌆"; fi
+}
+
+autoload -Uz add-zsh-hook
+preexec() { CMD_START_TIME=$(date +%s%3N) }
+precmd() {
+  if [[ -n $CMD_START_TIME ]]; then
+    local now=$(date +%s%3N)
+    CMD_DURATION=$(( now - CMD_START_TIME ))
+  else
+    CMD_DURATION=0
+  fi
+  unset CMD_START_TIME
+}
+add-zsh-hook preexec preexec
+add-zsh-hook precmd precmd
+
+# ============================================================================
+# POWERLINE WITH OVERLAPPING ARROW AND DYNAMIC DISTRO ICON
+# ============================================================================
+
+build_prompt() {
+  local segments=()
+  segments+=("%n@%m")
+  segments+=("%~")
+  local ginfo=$(git_prompt_info)
+  [[ -n $ginfo ]] && segments+=("$ginfo")
+  local dur=$(last_cmd_duration)
+  [[ -n $dur ]] && segments+=("$dur")
+  local stat=$(last_cmd_status)
+  [[ -n $stat ]] && segments+=("$stat")
+
+  local colors=(196 202 220 118 39 93 201)
+  local prompt=""
+  local seg_count=${#segments[@]}
+
+  for ((i=0; i<seg_count; i++)); do
+    local bg=${colors[i % ${#colors[@]}]}
+    local next_bg=""
+    if (( i < seg_count - 1 )); then
+      next_bg=${colors[(i+1) % ${#colors[@]}]}
+    fi
+
+    prompt+="%K{$bg}%F{0} ${segments[i]} %k%f"
+
+    if [[ -n $next_bg ]]; then
+      prompt+="%F{$bg}%K{$next_bg}%k%f"
+    fi
+  done
+
+  echo "$prompt"
+}
+
+
+setopt PROMPT_SUBST
+
+PROMPT='$(build_prompt)'
+PROMPT+=$'\n''%F{39}❯%f '
+
+RPROMPT='%F{244}$(greeting) %D{%H:%M:%S}%f'
+
 
 # --- Utility Functions (commented out examples) ---
 # # Extract various archive formats
@@ -329,35 +376,10 @@ last_cmd_status() {
 #   ps aux | grep -v grep | grep "$@" -i --color=always
 # }
 
-# # Weather function
-# weather() {
-#   curl -s "wttr.in/$1"
-# }
-
-# ============================================================================
-# PROMPT CONFIGURATION
-# ============================================================================
-
-setopt PROMPT_SUBST
-
-PROMPT=''
-
-PROMPT+='%F{black}%K{yellow} %m %k%f'
-
-PROMPT+='%F{black}%K{cyan} %* %k%f'
-
-PROMPT+='%F{black}%K{blue} %~ %k%f'
-
-PROMPT+='$(git_prompt_info) '
-
-PROMPT+='%F{black}%K{cyan} $(last_cmd_duration) %k%f'
-
-PROMPT+='$(last_cmd_status) '
-
-PROMPT+='%F{%(?.blue.red)}➜ %f'
-
-Right prompt (disabled by default)
-RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
+# Weather function
+weather() {
+  curl -s "wttr.in/$1"
+}
 
 # ============================================================================
 # ZINIT PLUGIN MANAGER SETUP
@@ -424,7 +446,6 @@ if command -v fzf &> /dev/null; then
   export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
   export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 fi
-
 
 # --- Python Virtual Environment ---
 # if command -v python3 &> /dev/null; then
