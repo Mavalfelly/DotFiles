@@ -24,7 +24,8 @@ chmod +x install.sh &&
 2. ** To pull and install updates: **
 ```sh
 cd ~/.dotfiles &&
-git pull &&
+git checkout master &&
+git pull origin master &&
 ./install.sh  # Will clean everything and reinstall fresh
 ```
 
