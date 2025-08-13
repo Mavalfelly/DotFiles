@@ -236,7 +236,7 @@ git_prompt_info() {
     local branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
     local dirty=$(git status --porcelain 2>/dev/null)
     if [[ -n $dirty ]]; then
-      echo "%F{0} ${branch} %F{196}✗%f"
+      echo "%F{0} ${branch} %F{0}✗%f"
     else
       echo "%F{0} ${branch}%f"
     fi
