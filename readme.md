@@ -15,22 +15,16 @@ This repository contains configuration files and setup scripts for quickly provi
 
 1. ** First time setup: **
 ```sh
-git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles
-
-cd ~/.dotfiles
-
-chmod +x install.sh
-
+git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles && 
+cd ~/.dotfiles && 
+chmod +x install.sh && 
 ./install.sh
-
 ```
 
 2. ** After pulling updates: **
 ```sh
-cd ~/.dotfiles
-
-git pull
-
+cd ~/.dotfiles &&
+git pull &&
 ./install.sh  # Will clean everything and reinstall fresh
 ```
    This will:
