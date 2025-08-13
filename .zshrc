@@ -448,13 +448,10 @@ if command -v fzf &> /dev/null; then
 fi
 
 # --- Python Virtual Environment ---
-# if command -v python3 &> /dev/null; then
-#   export PYENV_ROOT="$HOME/.pyenv"
-#   export PATH="$PYENV_ROOT/bin:$PATH"
-#   if command -v pyenv &> /dev/null; then
-#     eval "$(pyenv init -)"
-#   fi
-# fi
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - bash)"
+eval "$(pyenv virtualenv-init -)"
 
 # ============================================================================
 # KEY BINDINGS
