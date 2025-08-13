@@ -13,7 +13,7 @@ This repository contains configuration files and setup scripts for quickly provi
 
 ## Quick Start
 
-1. ** First time setup: **
+1. First time setup:
 ```sh
 git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles && 
 cd ~/.dotfiles && 
@@ -21,17 +21,12 @@ chmod +x install.sh &&
 ./install.sh
 ```
 
-2. ** After pulling updates: **
+2. ** To pull and install updates: **
 ```sh
 cd ~/.dotfiles &&
 git pull &&
 ./install.sh  # Will clean everything and reinstall fresh
 ```
-   This will:
-   - Install dependencies (zsh, neovim, fzf, etc.)
-   - Set up symlinks for config files
-   - Install language managers (nvm, pyenv, sdkman)
-   - Configure your shell and editor
 
 3. **Restart your shell** to apply changes.
 
