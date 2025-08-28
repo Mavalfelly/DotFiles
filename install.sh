@@ -2,7 +2,7 @@
 # ============================================================================
 # DotFiles Installation Script
 # ============================================================================
-# Author: Mavalfelly
+# Author: Matt Felly
 # Repository: DotFiles
 # Last Modified: 2025-08-27
 #
@@ -18,15 +18,11 @@
 # 6. Set up the development environment from ~/.dotfiles
 # ============================================================================
 
-set -e  # Exit on error
+set -e
 
-# --- Progress Bar and Test Helpers ---
-
-# Global variables for progress tracking
 TOTAL_STAGES=12
 CURRENT_STAGE=0
 
-# Function to print the progress bar
 print_progress() {
     local percentage=$(( (CURRENT_STAGE * 100) / TOTAL_STAGES ))
     local filled_length=$(( (percentage * 40) / 100 ))
@@ -38,7 +34,6 @@ print_progress() {
     echo -ne "\rProgress: [${filled_bar}${empty_bar}] ${percentage}% "
 }
 
-# Helper function for running tests
 run_test() {
     local description="$1"
     local command_to_run="$2"
@@ -316,7 +311,6 @@ install_python() {
 	run_test "Correct Python version is active" "pyenv version-name | grep -q $latest_python"
 
 	echo "▶ Installing Poetry..."
-	# Ensure the poetry executable path is clear before installation
 	rm -f "$HOME/.local/bin/poetry"
 	curl -sSL https://install.python-poetry.org | python3 -
 	export PATH="$HOME/.local/bin:$PATH"
@@ -339,7 +333,6 @@ install_java() {
     
     run_test "Java is installed" "command -v java"
     
-    # Extract the numeric version for the check, e.g., "21.0.8" from "21.0.8-amzn"
     local java_version_number=$(echo "$latest_java" | cut -d'-' -f1)
     run_test "Correct Java version is active" "java -version 2>&1 | grep -q $java_version_number"
 
@@ -390,7 +383,6 @@ setup_dotfiles() {
     echo "✅ Dotfiles setup completed successfully!"
 }
 
-# --- Progress Tracking ---
 TOTAL_STAGES=12
 CURRENT_STAGE=0
 
