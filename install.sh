@@ -353,7 +353,7 @@ setup_dotfiles() {
         echo "  ⚠️  .zshrc not found in ~/.dotfiles"
     fi
 
-    if [ -d "$HOME/.dotfiles/.config/starship.toml" ]; then
+    if [ -f "$HOME/.dotfiles/.config/starship.toml" ]; then
         echo "  Copying starship.toml from ~/.dotfiles"
         cp "$HOME/.dotfiles/.config/starship.toml" "$HOME/.config/starship.toml"
         run_test "starship.toml was copied" "[ -f \"$HOME/.config/starship.toml\" ]"
