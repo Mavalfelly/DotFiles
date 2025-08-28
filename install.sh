@@ -383,8 +383,6 @@ setup_dotfiles() {
     echo "✅ Dotfiles setup completed successfully!"
 }
 
-TOTAL_STAGES=12
-CURRENT_STAGE=0
 
 print_stage() {
     local stage="$1"
