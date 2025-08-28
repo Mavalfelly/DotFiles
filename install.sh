@@ -2,9 +2,9 @@
 # ============================================================================
 # DotFiles Installation Script
 # ============================================================================
-# Author: Mavalfelly
+# Author: Matt Felly
 # Repository: DotFiles
-# Last Modified: 2025-08-10
+# Last Modified: 2025-08-27
 #
 # This script assumes you've already cloned the dotfiles repo to ~/.dotfiles:
 # git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles
@@ -18,7 +18,33 @@
 # 6. Set up the development environment from ~/.dotfiles
 # ============================================================================
 
-set -e  # Exit on error
+set -e
+
+TOTAL_STAGES=12
+CURRENT_STAGE=0
+
+print_progress() {
+    local percentage=$(( (CURRENT_STAGE * 100) / TOTAL_STAGES ))
+    local filled_length=$(( (percentage * 40) / 100 ))
+    local empty_length=$(( 40 - filled_length ))
+    
+    local filled_bar=$(printf "%${filled_length}s" | tr ' ' '█')
+    local empty_bar=$(printf "%${empty_length}s" | tr ' ' '░')
+    
+    echo -ne "\rProgress: [${filled_bar}${empty_bar}] ${percentage}% "
+}
+
+run_test() {
+    local description="$1"
+    local command_to_run="$2"
+    
+    echo "  🧪 Testing: $description"
+    if eval "$command_to_run"; then
+        echo "    ✅ Passed"
+    else
+        echo "    ❌ Failed: $description"
+    fi
+}
 
 if [ ! -d "$HOME/.dotfiles" ]; then
     echo "❌ DotFiles repository not found at ~/.dotfiles"
@@ -175,11 +201,20 @@ install_dependencies() {
     sudo apt install -y zsh git curl wget fd-find ripgrep fzf htop tree
     sudo apt install -y build-essential
 
+    echo "▶ Installing Starship prompt..."
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+
     echo "▶ Installing Python build dependencies..."
     sudo apt install -y make build-essential libssl-dev zlib1g-dev \
         libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
         libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev \
         libffi-dev liblzma-dev python3-dev
+
+    echo "▶ Verifying dependencies..."
+    run_test "ZSH is installed" "command -v zsh"
+    run_test "Git is installed" "command -v git"
+    run_test "curl is installed" "command -v curl"
+    run_test "Starship is installed" "command -v starship"
 }
 
 install_neovim() {
@@ -197,7 +232,9 @@ install_neovim() {
     cd -
     rm -rf /tmp/neovim
 
-    nvim --version
+    echo "▶ Verifying Neovim installation..."
+    run_test "Neovim is installed" "command -v nvim"
+    run_test "Neovim version check" "nvim --version"
 
     echo "▶ Setting up LazyVim with custom config..."
     mkdir -p "$HOME/.config/nvim"
@@ -213,9 +250,6 @@ install_neovim() {
     fi
 
     echo "LazyVim setup complete. First run will install plugins automatically."
-    
-    echo "Installed Neovim version:"
-    nvim --version | head -n 1
 }
 
 setup_zsh() {
@@ -226,6 +260,7 @@ setup_zsh() {
     else
         echo "▶ ZSH is already the default shell"
     fi
+    run_test "Default shell is ZSH" "[ \"$SHELL\" = \"$(which zsh)\" ]"
 }
 
 install_node() {
@@ -234,17 +269,6 @@ install_node() {
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     
     sudo apt-get install -y nodejs
-    
-    echo "▶ Verifying Node.js installation..."
-    if ! command -v node >/dev/null 2>&1; then
-        echo "❌ Node.js installation failed."
-        return 1
-    fi
-    
-    if ! command -v npm >/dev/null 2>&1; then
-        echo "❌ npm installation failed."
-        return 1
-    fi
     
     echo "▶ Configuring npm for global packages..."
     
@@ -257,48 +281,43 @@ install_node() {
     echo "▶ Installing global npm packages..."
     npm install -g yarn pnpm typescript ts-node
     
-    echo "▶ Verifying installations..."
-    echo "Node version: $(node --version)"
-    echo "NPM version: $(npm --version)"
-    
-    if command -v yarn >/dev/null 2>&1; then
-        echo "Yarn version: $(yarn --version)"
-    else
-        echo "Yarn: Not installed or not in PATH"
-    fi
-    
-    if command -v pnpm >/dev/null 2>&1; then
-        echo "PNPM version: $(pnpm --version)"
-    else
-        echo "PNPM: Not installed or not in PATH"
-    fi
-    
-    if command -v tsc >/dev/null 2>&1; then
-        echo "TypeScript version: $(tsc --version)"
-    else
-        echo "TypeScript: Not installed or not in PATH"
-    fi
+    echo "▶ Verifying Node.js installations..."
+    run_test "Node.js is installed" "command -v node"
+    run_test "npm is installed" "command -v npm"
+    run_test "Yarn is installed" "command -v yarn"
+    run_test "pnpm is installed" "command -v pnpm"
+    run_test "TypeScript is installed" "command -v tsc"
     
     echo "✅ Node.js installation completed successfully!"
 }
 
 install_python() {
-    echo "▶ Installing Python Version Manager (pyenv)..."
-    curl https://pyenv.run | bash
-    
-    export PYENV_ROOT="$HOME/.pyenv"
-    [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init - bash)"
-    eval "$(pyenv virtualenv-init -)"
-    
-    echo "▶ Installing latest stable Python version..."
-    pyenv install $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
-    pyenv global $(pyenv install -l | grep -v '[a-zA-Z]' | tail -1)
-    
-    echo "▶ Installing Poetry..."
-    curl -sSL https://install.python-poetry.org | python3 -
-    
-    echo "✅ Python installation completed successfully!"
+	echo "▶ Installing Python Version Manager (pyenv)..."
+	curl https://pyenv.run | bash
+
+	export PYENV_ROOT="$HOME/.pyenv"
+	[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+	eval "$(pyenv init - bash)"
+	eval "$(pyenv virtualenv-init -)"
+
+	run_test "pyenv is installed" "command -v pyenv"
+
+	echo "▶ Installing latest stable Python version..."
+	local latest_python=$(pyenv install -l | grep -E '^\s*[0-9]+\.[0-9]+\.[0-9]+$' | tail -1 | xargs)
+	pyenv install "$latest_python"
+	pyenv global "$latest_python"
+
+	run_test "Python is installed" "command -v python"
+	run_test "Correct Python version is active" "pyenv version-name | grep -q $latest_python"
+
+	echo "▶ Installing Poetry..."
+	rm -f "$HOME/.local/bin/poetry"
+	curl -sSL https://install.python-poetry.org | python3 -
+	export PATH="$HOME/.local/bin:$PATH"
+
+	run_test "Poetry is installed" "command -v poetry"
+
+	echo "✅ Python installation completed successfully!"
 }
 
 install_java() {
@@ -306,9 +325,17 @@ install_java() {
     curl -s "https://get.sdkman.io" | bash
     source "$HOME/.sdkman/bin/sdkman-init.sh"
     
-    echo "▶ Installing latest Java 21..."
-    sdk install java $(sdk list java | grep -o "21\.[0-9.]*-amzn" | head -1)
+    run_test "SDKMAN is installed" "command -v sdk"
+
+    echo "▶ Installing latest Java 21 (Amazon Corretto)..."
+    local latest_java=$(sdk list java | grep -o '21\.[0-9\.]*-amzn' | head -1)
+    sdk install java "$latest_java"
     
+    run_test "Java is installed" "command -v java"
+    
+    local java_version_number=$(echo "$latest_java" | cut -d'-' -f1)
+    run_test "Correct Java version is active" "java -version 2>&1 | grep -q $java_version_number"
+
     echo "✅ Java installation completed successfully!"
 }
 
@@ -321,8 +348,15 @@ setup_dotfiles() {
     if [ -f "$HOME/.dotfiles/.zshrc" ]; then
         echo "  Copying .zshrc from ~/.dotfiles"
         cp "$HOME/.dotfiles/.zshrc" "$HOME/.zshrc"
+        run_test ".zshrc was copied" "[ -f \"$HOME/.zshrc\" ]"
     else
         echo "  ⚠️  .zshrc not found in ~/.dotfiles"
+    fi
+
+    if [ -f "$HOME/.dotfiles/.config/starship.toml" ]; then
+        echo "  Copying starship.toml from ~/.dotfiles"
+        cp "$HOME/.dotfiles/.config/starship.toml" "$HOME/.config/starship.toml"
+        run_test "starship.toml was copied" "[ -f \"$HOME/.config/starship.toml\" ]"
     fi
 
     if [ -d "$HOME/.dotfiles/.config/nvim" ] && [ ! -d "$HOME/.config/nvim" ]; then
@@ -333,6 +367,7 @@ setup_dotfiles() {
         rm -rf "$HOME/.config/nvim"
         cp -r "$HOME/.dotfiles/.config/nvim" "$HOME/.config/"
     fi
+    run_test "Neovim config directory exists" "[ -d \"$HOME/.config/nvim\" ]"
 
     if [ -d "$HOME/.dotfiles/.config" ]; then
         echo "  Copying additional configs from ~/.dotfiles/.config"
@@ -348,11 +383,22 @@ setup_dotfiles() {
     echo "✅ Dotfiles setup completed successfully!"
 }
 
+
 print_stage() {
     local stage="$1"
+    CURRENT_STAGE=$((CURRENT_STAGE + 1))
+    local percentage=$(( (CURRENT_STAGE * 100) / TOTAL_STAGES ))
+    
+    local bar_length=25
+    local filled_length=$(( (percentage * bar_length) / 100 ))
+    local empty_length=$(( bar_length - filled_length ))
+    local filled_bar=$(printf "%${filled_length}s" | tr ' ' '█')
+    local empty_bar=$(printf "%${empty_length}s" | tr ' ' '░')
+
     echo
     echo "================================================================"
-    echo "  ${stage}"
+    echo "  Progress: [${filled_bar}${empty_bar}] ${percentage}%"
+    echo "  Stage ${CURRENT_STAGE}/${TOTAL_STAGES}: ${stage}"
     echo "================================================================"
 }
 
