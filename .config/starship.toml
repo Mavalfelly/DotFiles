@@ -1,0 +1,73 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = false
+
+# Change the default prompt format
+format = """$all"""
+
+# Change the default prompt characters
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+# Shows the username
+[username]
+style_user = "green bold"
+style_root = "red bold"
+format = "[$user]($style)@"
+show_always = true
+
+# Shows the hostname
+[hostname]
+style = "bold dimmed blue"
+format = "[$hostname]($style) in "
+trim_at = ".companyname.com"
+disabled = false
+
+# Shows current directory
+[directory]
+style = "bold cyan"
+truncation_length = 5
+truncate_to_repo = true
+
+# Git status
+[git_status]
+style = "bold red"
+conflicted = "⚔️ "
+ahead = "🏎️ "
+behind = "😰 "
+diverged = "😵 "
+untracked = "🤷 "
+stashed = "📦 "
+modified = "📝 "
+staged = '[++\($count\)](green)'
+renamed = "📛 "
+deleted = "🗑️ "
+
+# Git branch
+[git_branch]
+style = "bold purple"
+format = "on [$symbol$branch]($style) "
+symbol = "🌱 "
+
+# Shows current python version
+[python]
+style = "bold green"
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+pyenv_version_name = true
+pyenv_prefix = "pyenv "
+python_binary = "python3"
+
+# Shows nodejs version
+[nodejs]
+format = "via [🤖 $version](bold green) "
+disabled = false
+
+# Shows the time
+[time]
+time_format = "%T"
+style = "bold yellow"
+format = "at [$time]($style)"
+disabled = false
