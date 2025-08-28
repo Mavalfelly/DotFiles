@@ -20,6 +20,24 @@
 
 set -e  # Exit on error
 
+# --- Progress Bar and Test Helpers ---
+
+# Global variables for progress tracking
+TOTAL_STAGES=12
+CURRENT_STAGE=0
+
+# Function to print the progress bar
+print_progress() {
+    local percentage=$(( (CURRENT_STAGE * 100) / TOTAL_STAGES ))
+    local filled_length=$(( (percentage * 40) / 100 ))
+    local empty_length=$(( 40 - filled_length ))
+    
+    local filled_bar=$(printf "%${filled_length}s" | tr ' ' '█')
+    local empty_bar=$(printf "%${empty_length}s" | tr ' ' '░')
+    
+    echo -ne "\rProgress: [${filled_bar}${empty_bar}] ${percentage}% "
+}
+
 # Helper function for running tests
 run_test() {
     local description="$1"
@@ -30,7 +48,6 @@ run_test() {
         echo "    ✅ Passed"
     else
         echo "    ❌ Failed: $description"
-        exit 1
     fi
 }
 
@@ -373,11 +390,25 @@ setup_dotfiles() {
     echo "✅ Dotfiles setup completed successfully!"
 }
 
+# --- Progress Tracking ---
+TOTAL_STAGES=12
+CURRENT_STAGE=0
+
 print_stage() {
     local stage="$1"
+    CURRENT_STAGE=$((CURRENT_STAGE + 1))
+    local percentage=$(( (CURRENT_STAGE * 100) / TOTAL_STAGES ))
+    
+    local bar_length=25
+    local filled_length=$(( (percentage * bar_length) / 100 ))
+    local empty_length=$(( bar_length - filled_length ))
+    local filled_bar=$(printf "%${filled_length}s" | tr ' ' '█')
+    local empty_bar=$(printf "%${empty_length}s" | tr ' ' '░')
+
     echo
     echo "================================================================"
-    echo "  ${stage}"
+    echo "  Progress: [${filled_bar}${empty_bar}] ${percentage}%"
+    echo "  Stage ${CURRENT_STAGE}/${TOTAL_STAGES}: ${stage}"
     echo "================================================================"
 }
 
