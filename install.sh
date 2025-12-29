@@ -58,7 +58,8 @@ if [ ! -f /etc/os-release ]; then
 fi
 
 . /etc/os-release
-OS=$ID_LIKE
+# Check both ID and ID_LIKE to support pure Debian (ID=debian) and derivatives (ID_LIKE=debian)
+OS="${ID_LIKE:-$ID}"
 
 if [[ "$OS" != *"debian"* ]]; then
     echo "This script only supports Debian-based systems"
