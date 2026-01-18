@@ -1,280 +1,152 @@
-
 #!/usr/bin/env zsh
-# ============================================================================
-# Complete Zsh Configuration File
-# ============================================================================
-# Author: Felly
-# ============================================================================
-# ENVIRONMENT VARIABLES
-# ============================================================================
 
-# Default editor and pager
-export EDITOR="nvim"                    # Default text editor
-export VISUAL="nvim"                    # Visual editor
-export PAGER="less"                     # Default pager
-# export BROWSER="firefox"              # Default web browser
-# export TERMINAL="alacritty"           # Default terminal emulator
+export EDITOR="nvim"
+export VISUAL="nvim"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/go/bin:$HOME/.npm-global/bin:$PATH"
 
-# Language and locale settings
-export LANG="en_US.UTF-8"              # System language
-export LC_ALL="en_US.UTF-8"            # All locale categories
-# export LC_COLLATE="C"                 # Sort order (C = ASCII order)
-# export LC_TIME="en_US.UTF-8"          # Time format
+export BAT_THEME="GitHub"
+export DELTA_PAGER="less -R"
+export EXA_ICON_SPACING=2
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
-# Path configuration
-export PATH="$HOME/.local/bin:$PATH"                    # Local binaries
-export PATH="$HOME/.npm-global/bin:$PATH"               # npm global packages
+# PostgreSQL Configuration (customize as needed)
+# export PGDATA="/var/lib/postgresql/16/main"
+# export PGHOST="localhost"
+# export PGPORT="5432"
+# export PGUSER="$USER"
+# export PGDATABASE="$USER"
 
+alias cat='bat --style=numbers,changes,header --file-name --theme=GitHub'
+alias ls='exa --long --header --git --icons --group-directories-first'
+alias ll='exa --long --header --git --icons --all --group-directories-first'
+alias la='exa --long --header --git --icons --all --binary --group-directories-first'
+alias lt='exa --tree --level=3 --icons --git'
+alias tree='exa --tree --icons --git'
+alias diff='delta'
+alias top='btop'
+alias htop='btop'
+alias find='fd'
+alias grep='rg'
 
-# XDG Base Directory Specification
-export XDG_CONFIG_HOME="$HOME/.config"          # Configuration files
-export XDG_DATA_HOME="$HOME/.local/share"       # Data files
-export XDG_CACHE_HOME="$HOME/.cache"            # Cache files
-export XDG_STATE_HOME="$HOME/.local/state"      # State files
+alias py='python3'
+alias pip='pip3'
+alias pyrun='python3 -m'
+alias pytest='python3 -m pytest'
+alias python-shell='python3 -i'
+alias nv='nvim'
+alias vim='nvim'
+alias vi='nvim'
+alias nano='nvim'
+alias serve='python3 -m http.server 8000'
 
-# Application-specific environment variables
-# export DOCKER_HOST="unix:///var/run/docker.sock"     # Docker host
-# export COMPOSE_DOCKER_CLI_BUILD=1                    # Docker Compose CLI
-# export BUILDKIT_PROGRESS=plain                       # Docker Buildkit
-# export FZF_DEFAULT_COMMAND="fd --type f"             # fzf default command
-# export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"  # fzf options
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit -m'
+alias gp='git push'
+alias gl='git pull'
+alias gd='git diff'
+alias gco='git checkout'
+alias glog='git log --oneline --graph --decorate --all'
+alias gst='git stash'
+alias gsp='git stash pop'
+alias gclean='git clean -fd'
+alias greset='git reset --hard'
+alias gamend='git commit --amend --no-edit'
+alias gcredit='git commit --amend --author='
+alias gsl='git shortlog -sn'
+alias gundo='git reset --soft HEAD~1'
+alias grename='git branch -m'
+alias garchive='git archive master --format=zip --output=archive.zip'
 
-# ============================================================================
-# ZSH HISTORY CONFIGURATION
-# ============================================================================
+alias d='docker'
+alias dc='docker-compose'
+alias dps='docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"'
+alias di='docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.Created}}"'
+alias dex='docker exec -it'
+alias dlog='docker logs -f'
+alias dstop='docker stop $(docker ps -q)'
+alias drmi='docker rmi $(docker images -f "dangling=true" -q)'
+alias dclean='docker system prune -f'
+alias dnuke='docker stop $(docker ps -q) && docker system prune -af'
 
-HISTFILE=~/.histfile                           # History file location
-HISTSIZE=50000                                 # History size in memory
-SAVEHIST=50000                                 # History size on disk
-# HISTFILE="${XDG_STATE_HOME}/zsh/history"    # XDG compliant history location
+# PostgreSQL aliases (customize version and user as needed)
+alias pg-start='sudo systemctl start postgresql'
+alias pg-stop='sudo systemctl stop postgresql'
+alias pg-restart='sudo systemctl restart postgresql'
+alias pg-status='sudo systemctl status postgresql'
+# alias psql='psql -h localhost -U $USER'
+alias pg-list='psql -l'
+alias pg-create='createdb'
+alias pg-drop='dropdb'
+alias pg-dump='pg_dump'
+alias pg-restore='psql'
+alias pg-shell='sudo -u postgres psql'
 
-# History behavior options
-setopt HIST_EXPIRE_DUPS_FIRST          # Expire duplicate entries first
-setopt HIST_IGNORE_DUPS                # Don't record consecutive duplicates
-setopt HIST_IGNORE_ALL_DUPS            # Delete old duplicate entries
-setopt HIST_FIND_NO_DUPS               # Don't display duplicates during search
-setopt HIST_IGNORE_SPACE               # Don't record entries starting with space
-setopt HIST_SAVE_NO_DUPS               # Don't write duplicates to history file
-setopt HIST_REDUCE_BLANKS              # Remove superfluous blanks
-setopt HIST_VERIFY                     # Show command with history expansion
-setopt SHARE_HISTORY                   # Share history between sessions
-setopt APPEND_HISTORY                  # Append to history file
-setopt INC_APPEND_HISTORY             # Write to history file immediately
+# Project aliases (customize paths as needed)
+alias proj='cd ~/projects'
+alias pj='cd ~/projects'
+# alias pbackup='~/scripts/backup_projects.sh'
+# alias dev='~/scripts/dev_env.sh'
+alias pp='cd $(find ~/projects -maxdepth 1 -type d 2>/dev/null | fzf)'
 
-# Additional history options (commented out)
-# setopt HIST_NO_STORE                 # Don't store history commands
-# setopt HIST_NO_FUNCTIONS             # Don't store function definitions
-# setopt HIST_BEEP                     # Beep when accessing non-existent history
-# setopt BANG_HIST                     # Treat '!' specially in history expansion
+alias md='mkdir -p'
+alias rd='rmdir'
+alias copy='cp -r'
+alias move='mv'
+alias del='rm -rf'
+alias size='du -sh'
+alias space='df -h'
+alias ports='netstat -tuln'
+alias untar='tar -xzf'
+alias zip='gzip'
+alias unzip='gunzip'
 
-# ============================================================================
-# ZSH OPTIONS AND BEHAVIOR
-# ============================================================================
+alias myip='curl -s https://ipinfo.io/ip'
+alias localip='hostname -I | awk "{print \$1}"'
+alias ping='ping -c 4'
+alias speed='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3'
+alias check-ssl='openssl s_client -connect'
+alias http-serve='python3 -m http.server 8000'
+alias file-serve='ruby -run -e httpd . -p 9090'
 
-setopt AUTO_CD                         # Just type directory name to cd
-setopt AUTO_PUSHD                      # Push directories onto stack automatically
-setopt PUSHD_IGNORE_DUPS              # Don't push duplicate directories
-setopt PUSHD_SILENT                   # Don't print directory stack after pushd/popd
-setopt CDABLE_VARS                    # Allow cd to variable names
-# setopt PUSHD_TO_HOME                # pushd without args goes to home
-# setopt PUSHD_MINUS                  # Exchange meaning of +/- for pushd
+alias perf='perf_check'
+alias mem='free -h'
+alias disk='df -h'
+alias load='uptime'
+alias temp='sensors 2>/dev/null || echo "No sensors available"'
+alias connections='ss -tuln'
+alias processes='ps aux --sort=-%cpu | head -20'
+alias memory-hogs='ps aux --sort=-%mem | head -10'
 
-setopt AUTO_LIST                      # List choices on ambiguous completion
-setopt AUTO_MENU                      # Use menu completion after second tab
-setopt COMPLETE_IN_WORD               # Complete from both ends of word
-setopt ALWAYS_TO_END                  # Move cursor to end after completion
-setopt LIST_PACKED                    # Compact completion lists
-setopt LIST_TYPES                     # Show file types in completion
-# setopt MENU_COMPLETE                # Insert first match immediately
-setopt AUTO_PARAM_SLASH             # Add slash after completing directories
-# setopt AUTO_PARAM_KEYS              # Remove trailing characters if needed
-# setopt AUTO_REMOVE_SLASH            # Remove trailing slash when needed
-setopt COMPLETE_ALIASES             # Complete aliases
-# setopt GLOB_COMPLETE                # Generate glob matches as completions
-# setopt HASH_LIST_ALL                # Hash command path on first completion
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ~="cd ~"
+alias -- -="cd -"
 
-setopt EXTENDED_GLOB                  # Use extended globbing syntax
-setopt GLOB_DOTS                      # Include dotfiles in globbing
-setopt NUMERIC_GLOB_SORT              # Sort numeric filenames numerically
-# setopt NO_CASE_GLOB                 # Case insensitive globbing
-# setopt NULL_GLOB                    # Delete pattern if no matches
-# setopt GLOB_SUBST                   # Expand globs in parameter substitution
-# setopt WARN_CREATE_GLOBAL           # Warn when creating global parameters
-# setopt CSH_NULL_GLOB                # Error if no glob match (like csh)
-# setopt BASH_GLOB                    # Use bash-style globbing
-# setopt KSH_GLOB                     # Use ksh-style globbing
+# Custom mount aliases (customize for your setup)
+# alias mount_usb='sudo mount UUID=<YOUR_UUID> ~/external'
+# alias unmount_usb="sudo umount ~/external"
+# alias mount_server='sshfs user@server:/ ~/server -p <port>'
+# alias umount_server='fusermount -u ~/server'
 
-setopt AUTO_RESUME                    # Single word commands resume jobs
-setopt LONG_LIST_JOBS                 # List jobs in long format
-setopt NOTIFY                         # Report job status immediately
-# setopt NO_BG_NICE                   # Don't run background jobs at lower priority
-# setopt NO_HUP                       # Don't send HUP signal to jobs on shell exit
-# setopt CHECK_JOBS                   # Check for jobs before exiting
-# setopt NO_CHECK_JOBS                # Don't check for jobs before exiting
-
-setopt CORRECT                        # Spell correction for commands
-setopt CORRECT_ALL                    # Spell correction for all arguments
-setopt INTERACTIVE_COMMENTS           # Allow comments in interactive shell
-setopt RC_QUOTES                      # Allow '' to represent single quote in strings
-setopt SHORT_LOOPS                    # Allow short forms of for/repeat/select
-# setopt CLOBBER                      # Allow > redirection to overwrite files
-# setopt NO_CLOBBER                   # Prevent > redirection from overwriting
-# setopt APPEND_CREATE                # Create files with >> if they don't exist
-# setopt MULTIOS                      # Allow multiple redirections
-# setopt PATH_DIRS                    # Search path even for commands with slashes
-# setopt HASH_CMDS                    # Hash commands as they are executed
-# setopt HASH_DIRS                    # Hash directories as they are added to path
-
-setopt PROMPT_SUBST                   # Allow parameter expansion in prompts
-setopt TRANSIENT_RPROMPT              # Remove right prompt after command
-# setopt PROMPT_CR                    # Print CR before each prompt
-# setopt PROMPT_SP                    # Preserve partial line before prompt
-# setopt SINGLE_LINE_ZLE              # Use single line for line editor
-
-# setopt C_BASES                      # Use 0x prefix for hex numbers
-# setopt OCTAL_ZEROES                 # Use leading zeros for octal numbers
-# setopt TYPESET_SILENT               # Don't print values when setting variables
-# setopt WARN_CREATE_GLOBAL           # Warn when creating global variables
-# setopt LOCAL_OPTIONS                # Options set in functions are local
-# setopt LOCAL_TRAPS                  # Traps set in functions are local
-# setopt FUNCTION_ARGZERO             # Set $0 to function name
-# setopt MULTI_FUNC_DEF               # Allow multiple function definitions
-
-bindkey -e                           # Use Emacs key bindings
-# bindkey -v                         # Use Vi key bindings
-
-# ============================================================================
-# COMPLETION SYSTEM SETUP
-# ============================================================================
-
+# Key Bindings (load after zsh-syntax-highlighting)
 autoload -Uz compinit
 compinit
 
-zstyle ':completion:*' menu select                    # Use menu for completion
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}  # Use colors in completion
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'  # Case insensitive matching
-zstyle ':completion:*' completer _expand _complete _correct _approximate  # Completion strategies
-zstyle ':completion:*' format 'Completing %d'        # Completion group format
-zstyle ':completion:*' group-name ''                 # Group completions
-zstyle ':completion:*' verbose yes                   # Verbose completions
+bindkey '^R' history-incremental-search-backward  # Ctrl+R: Search history
+bindkey '^[[1;5C' forward-word                    # Ctrl+Right: Jump forward word
+bindkey '^[[1;5D' backward-word                   # Ctrl+Left: Jump backward word
+bindkey '^[[H' beginning-of-line                  # Home: Go to start of line
+bindkey '^[[F' end-of-line                        # End: Go to end of line
 
-zstyle ':completion:*:descriptions' format '%U%B%d%b%u'  # Description format
-zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'  # No match warning
-# zstyle ':completion:*' use-cache on                 # Use completion cache
-# zstyle ':completion:*' cache-path ~/.zcompcache     # Cache location
-# zstyle ':completion:*:cd:*' ignore-parents parent pwd  # Don't complete parent dirs
-# zstyle ':completion:*:*:kill:*' menu yes select     # Menu for kill command
-# zstyle ':completion:*:kill:*' force-list always     # Always show kill list
-
-# ============================================================================
-# ALIASES
-# ============================================================================
-
-alias ls='ls --color=auto'            # Colorized ls
-alias ll='ls -lah'                    # Long list with hidden files
-alias la='ls -A'                      # List all except . and ..
-alias l='ls -CF'                      # Classify files
-alias grep='grep --color=auto'        # Colorized grep
-alias fgrep='fgrep --color=auto'      # Colorized fgrep
-alias egrep='egrep --color=auto'      # Colorized egrep
-
-alias ..='cd ..'                      # Go up one directory
-alias ...='cd ../..'                  # Go up two directories
-alias ....='cd ../../..'              # Go up three directories
-alias .....='cd ../../../..'          # Go up four directories
-alias ~="cd ~"                      # Go to home directory
-alias -- -="cd -"                  # Go to previous directory
-
-alias gs='git status'                 # Git status
-alias ga='git add'                    # Git add
-alias gc='git commit'                 # Git commit
-alias gp='git push'                   # Git push
-alias gl='git pull'                   # Git pull
-alias gd='git diff'                   # Git diff
-alias gb='git branch'                 # Git branch
-alias gco='git checkout'              # Git checkout
-alias glog='git log --oneline --graph'  # Pretty git log
-# alias gcm='git commit -m'           # Git commit with message
-# alias gca='git commit -am'          # Git commit all with message
-# alias gst='git stash'               # Git stash
-# alias gsp='git stash pop'           # Git stash pop
-
-alias df='df -h'                      # Human readable df
-alias du='du -h'                      # Human readable du
-alias free='free -h'                  # Human readable free
-alias ps='ps aux'                     # Detailed process list
-alias top='htop'                      # Use htop instead of top
-alias tree='tree -C'                  # Colorized tree
-# alias mkdir='mkdir -p'              # Create parent directories
-# alias cp='cp -i'                    # Interactive copy
-# alias mv='mv -i'                    # Interactive move
-# alias rm='rm -i'                    # Interactive remove
-# alias ln='ln -i'                    # Interactive link
-
-alias vim='nvim'                      # Use neovim
-alias vi='nvim'                       # Use neovim
-alias nano='nvim'                     # Use neovim as nano
-
-# --- Network Aliases ---
-# alias myip='curl -s https://ipinfo.io/ip'  # Get public IP
-# alias localip='ip route get 1.2.3.4 | awk "{print $7}"'  # Get local IP
-# alias ports='netstat -tulanp'       # Show open ports
-
-# --- Docker Aliases ---
-# alias d='docker'                    # Docker shorthand
-# alias dc='docker-compose'           # Docker compose shorthand
-# alias dps='docker ps'               # Docker process status
-# alias di='docker images'            # Docker images
-# alias dex='docker exec -it'         # Docker exec interactive
-
-# ============================================================================
-# PROMPT SETUP
-# ============================================================================
-
-# Initialize Starship prompt
-eval "$(starship init zsh)"
-
-# --- Utility Functions (commented out examples) ---
-# # Extract various archive formats
-# extract() {
-#   if [ -f $1 ] ; then
-#     case $1 in
-#       *.tar.bz2)   tar xjf $1     ;;
-#       *.tar.gz)    tar xzf $1     ;;
-#       *.bz2)       bunzip2 $1     ;;
-#       *.rar)       unrar e $1     ;;
-#       *.gz)        gunzip $1      ;;
-#       *.tar)       tar xf $1      ;;
-#       *.tbz2)      tar xjf $1     ;;
-#       *.tgz)       tar xzf $1     ;;
-#       *.zip)       unzip $1       ;;
-#       *.Z)         uncompress $1  ;;
-#       *.7z)        7z x $1        ;;
-#       *)     echo "'$1' cannot be extracted via extract()" ;;
-#     esac
-#   else
-#     echo "'$1' is not a valid file"
-#   fi
-# }
-
-# # Make directory and cd into it
-# mkcd() {
-#   mkdir -p "$1" && cd "$1"
-# }
-
-# # Find process by name
-# psg() {
-#   ps aux | grep -v grep | grep "$@" -i --color=always
-# }
-
-# Weather function
-weather() {
-  curl -s "wttr.in/$1"
-}
-
-# ============================================================================
-# ZINIT PLUGIN MANAGER SETUP
-# ============================================================================
+# Custom widget bindings (define widgets before binding)
+zle -N fe_widget
+zle -N cd_history_widget
+bindkey '^P' fe_widget                            # Ctrl+P: Fuzzy edit file
+bindkey '^O' cd_history_widget                    # Ctrl+O: Fuzzy cd from history
 
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
     print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
@@ -286,37 +158,23 @@ fi
 
 source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 
-# ============================================================================
-# PLUGIN CONFIGURATION
-# ============================================================================
-
+# Zinit Plugins - Maximum QOL
+zinit light zdharma-continuum/fast-syntax-highlighting  # Syntax highlighting
 zinit ice wait lucid
-zinit light zsh-users/zsh-autosuggestions      # Fish-like autosuggestions
-
-zinit ice wait"0"
-zinit light zsh-users/zsh-syntax-highlighting  # Syntax highlighting
-
-zinit light zsh-users/zsh-history-substring-search  # History search with arrows
-zinit light zsh-users/zsh-completions         # Additional completions
-zinit light rupa/z                            # Jump to directories (z command)
-zinit light tarrasch/zsh-autoenv              # Auto source .env files
-zinit light mafredri/zsh-async                # Async functions
-
-# --- Additional Useful Plugins (commented out) ---
-zinit light zdharma-continuum/fast-syntax-highlighting  # Faster syntax highlighting
-zinit light marlonrichert/zsh-autocomplete   # Better autocomplete
-zinit light Aloxaf/fzf-tab                   # fzf integration for completions
-# zinit light agkozak/zsh-z                    # Alternative to rupa/z
-zinit light hlissner/zsh-autopair            # Auto-pair brackets/quotes
-zinit light MichaelAquilina/zsh-you-should-use  # Suggest aliases for commands
-zinit light wfxr/forgit                      # Interactive git commands
-# zinit light jimhester/per-directory-history  # Per-directory command history
-# zinit light zsh-users/zsh-apple-touchbar     # macOS Touch Bar support
-
-# --- Themes (commented out - using custom prompt) ---
-# zinit ice depth=1; zinit light romkatv/powerlevel10k    # Powerlevel10k theme
-# zinit light spaceship-prompt/spaceship-prompt          # Spaceship theme
-# zinit light sindresorhus/pure                          # Pure theme
+zinit light zsh-users/zsh-autosuggestions               # Fish-like suggestions
+zinit light marlonrichert/zsh-autocomplete              # Smart autocomplete
+zinit light hlissner/zsh-autopair                       # Auto-pair brackets/quotes
+zinit light MichaelAquilina/zsh-you-should-use          # Suggest aliases
+zinit light djui/alias-tips                             # Alias reminders
+zinit light wfxr/forgit                                # Interactive git
+zinit light unixorn/git-extra-commands                  # Extra git commands
+zinit light wfxr/formarks                              # Directory bookmarks
+zinit light zsh-users/zsh-history-substring-search      # History search
+zinit light rupa/z                                     # Directory jumper
+zinit light tarrasch/zsh-autoenv                       # Auto .env loading
+zinit light jimhester/per-directory-history             # Per-dir history
+zinit light chisui/zsh-nix-shell                       # Nix shell support
+zinit light zsh-users/zsh-completions                   # Completions library
 
 zinit light-mode for \
     zdharma-continuum/zinit-annex-as-monitor \
@@ -327,60 +185,632 @@ zinit light-mode for \
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
-# ============================================================================
-# ADDITIONAL TOOL CONFIGURATIONS
-# ============================================================================
+zinit light github/gh-cli                               # GitHub CLI integration
 
-if command -v fzf &> /dev/null; then
-  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
-  export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
-fi
+# Starship Prompt
+eval "$(starship init zsh)"
 
-# --- Python Virtual Environment ---
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init - bash)"
-eval "$(pyenv virtualenv-init -)"
+project() {
+  local projects_dir="${PROJECTS_DIR:-$HOME/projects}"
+  local project_dir="$projects_dir/$1"
+  
+  if [ -d "$project_dir" ]; then
+    cd "$project_dir"
+    
+    if [ -f "pyproject.toml" ]; then
+      poetry shell 2>/dev/null || echo "⚠️  Poetry not available"
+      echo "🐍 Poetry environment activated"
+    elif [ -f "venv/bin/activate" ]; then
+      source venv/bin/activate
+      echo "🐍 Virtual environment activated"
+    elif [ -f ".venv/bin/activate" ]; then
+      source .venv/bin/activate
+      echo "🐍 Virtual environment activated"
+    elif [ -f "package.json" ]; then
+      echo "📦 Node.js project detected"
+    elif [ -f "Cargo.toml" ]; then
+      echo "🦀 Rust project detected"
+    elif [ -f "docker-compose.yml" ] || [ -f "Dockerfile" ]; then
+      echo "🐳 Docker project detected"
+    fi
+    
+    echo "📁 Project: $1"
+    echo "🌿 $(git branch --show-current 2>/dev/null || echo 'No git')"
+    echo "📋 $(ls -1 2>/dev/null | wc -l) files/folders"
+  else
+    echo "❌ Project '$1' not found in $projects_dir/"
+    if [ -d "$projects_dir" ]; then
+      echo "Available projects:"
+      ls "$projects_dir"
+    else
+      echo "Projects directory not found: $projects_dir"
+    fi
+  fi
+}
 
-# ============================================================================
-# KEY BINDINGS
-# ============================================================================
+alias proj='project'
 
-# History substring search bindings
-bindkey '^[[A' history-substring-search-up      # Up arrow
-bindkey '^[[B' history-substring-search-down    # Down arrow
-bindkey -M emacs '^P' history-substring-search-up    # Ctrl-P
-bindkey -M emacs '^N' history-substring-search-down  # Ctrl-N
+newproj() {
+  local project_type="$1"
+  local project_name="$2"
+  local projects_dir="${PROJECTS_DIR:-$HOME/projects}"
+  local project_dir="$projects_dir/$project_name"
+  
+  if [ -z "$project_name" ]; then
+    echo "Usage: newproj {python|node|rust|docker|generic|fastapi|react|springboot|rustapi} project_name"
+    return 1
+  fi
+  
+  mkdir -p "$project_dir"
+  cd "$project_dir"
+  
+  case "$project_type" in
+    "springboot")
+      mkdir -p src/main/java/com/example demo/src/main/resources
+      cat > pom.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>PROJECT_NAME</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>PROJECT_NAME</name>
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+EOF
+      
+      cat > src/main/java/com/example/Application.java << 'EOF'
+package com.example;
 
-# Additional useful key bindings (commented out)
-# bindkey '^R' history-incremental-search-backward  # Ctrl-R for reverse search
-# bindkey '^S' history-incremental-search-forward   # Ctrl-S for forward search
-bindkey '^[[1;5C' forward-word                    # Ctrl-Right arrow
-bindkey '^[[1;5D' backward-word                   # Ctrl-Left arrow
-# bindkey '^[[3~' delete-char                       # Delete key
-# bindkey '^[[H' beginning-of-line                  # Home key
-# bindkey '^[[F' end-of-line                        # End key
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-# ============================================================================
-# DEVICE-SPECIFIC CONFIGURATION
-# ============================================================================
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+EOF
+      
+      cat > src/main/java/com/example/controller/HelloController.java << 'EOF'
+package com.example.controller;
 
-# Load device-specific configuration if it exists
-# This file should contain device-specific settings like:
-# - Different paths
-# - Device-specific aliases
-# - Custom environment variables
-# - Local development settings
-[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-# ============================================================================
-# PERFORMANCE MONITORING (for debugging)
-# ============================================================================
+@RestController
+public class HelloController {
+    @GetMapping("/")
+    public String index() {
+        return "Hello from Spring Boot!";
+    }
+    
+    @GetMapping("/api/hello")
+    public String hello() {
+        return "Hello API from Spring Boot!";
+    }
+}
+EOF
+      
+      cat > src/main/resources/application.properties << 'EOF'
+spring.application.name=PROJECT_NAME
+server.port=8080
 
-# Uncomment to enable zsh startup time profiling
-# zmodload zsh/zprof
+spring.datasource.url=jdbc:postgresql://localhost:5432/YOUR_DATABASE
+spring.datasource.username=YOUR_USERNAME
+spring.datasource.password=YOUR_PASSWORD
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+EOF
+      
+      sed -i "s/PROJECT_NAME/$project_name/g" pom.xml src/main/resources/application.properties
+      echo "🌱 Spring Boot project created: $project_name"
+      ;;
+    "react")
+      npx create-react-app . --template typescript
+      echo "⚛️ React TypeScript project created: $project_name"
+      ;;
+    "rustapi")
+      cat > Cargo.toml << 'EOF'
+[package]
+name = "PROJECT_NAME"
+version = "0.1.0"
+edition = "2021"
 
-# Add this line at the end of the file to see profiling results:
-# zprof
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres"] }
+axum = "0.7"
+EOF
+      
+      mkdir -p src
+      cat > src/main.rs << 'EOF'
+use axum::{extract::Path, response::Json, routing::get, Router};
+use serde::Deserialize;
+use std::net::SocketAddr;
+
+#[derive(Deserialize)]
+struct HelloRequest {
+    name: String,
+}
+
+#[derive(serde::Serialize)]
+struct HelloResponse {
+    message: String,
+}
+
+#[tokio::main]
+async fn main() {
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/api/hello/:name", get(hello_name));
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
+
+async fn root() -> &'static str {
+    "Hello from Rust API!"
+}
+
+async fn hello_name(Path(name): Path<String>) -> Json<HelloResponse> {
+    Json(HelloResponse {
+        message: format!("Hello, {}!", name),
+    })
+}
+EOF
+      
+      sed -i "s/PROJECT_NAME/$project_name/g" Cargo.toml
+      echo "🦀 Rust API project created: $project_name"
+      ;;
+    "python")
+      python3 -m venv .venv
+      source .venv/bin/activate
+      pip install --upgrade pip black pytest flake8
+      cat > README.md << EOF
+# $project_name
+
+## Development
+\`\`\`bash
+source .venv/bin/activate
+pip install -r requirements.txt
+\`\`\`
+EOF
+      echo "🐍 Python project created: $project_name"
+      ;;
+    "node")
+      npm init -y
+      npm install --save-dev prettier eslint
+      cat > README.md << EOF
+# $project_name
+
+## Development
+\`\`\`bash
+npm install
+npm start
+\`\`\`
+EOF
+      echo "📦 Node.js project created: $project_name"
+      ;;
+    "rust")
+      cargo init --name "$project_name"
+      echo "🦀 Rust project created: $project_name"
+      ;;
+    "docker")
+      cat > Dockerfile << 'EOF'
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "app.py"]
+EOF
+      cat > docker-compose.yml << 'EOF'
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+EOF
+      cat > app.py << 'EOF'
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    return "Hello from Docker!"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
+EOF
+      echo "🐳 Docker project created: $project_name"
+      ;;
+    "generic")
+      cat > README.md << EOF
+# $project_name
+
+## Description
+Your project description here.
+
+## Setup
+Your setup instructions here.
+EOF
+      echo "📁 Generic project created: $project_name"
+      ;;
+  esac
+  
+  git init
+  git add .
+  git commit -m "Initial commit"
+}
+
+pg_new() {
+  local db_name="$1"
+  if [ -z "$db_name" ]; then
+    echo "Usage: pg_new database_name"
+    return 1
+  fi
+  createdb "$db_name"
+  echo "✅ Created database: $db_name"
+  echo "🔗 Connect with: psql $db_name"
+}
+
+pg_connect() {
+  local db_name="$1"
+  if [ -z "$db_name" ]; then
+    echo "Usage: pg_connect database_name"
+    echo "Available databases:"
+    psql -l | grep -v "^List" | grep -v "^(" | grep -v "^---" | awk '{print $1}'
+    return 1
+  fi
+  psql "$db_name"
+}
+
+pg_backup() {
+  local db_name="$1"
+  local backup_file="$2"
+  if [ -z "$db_name" ]; then
+    echo "Usage: pg_backup database_name [backup_file]"
+    return 1
+  fi
+  if [ -z "$backup_file" ]; then
+    backup_file="${db_name}_$(date +%Y%m%d_%H%M%S).sql"
+  fi
+  pg_dump "$db_name" > "$backup_file"
+  echo "✅ Backed up $db_name to $backup_file"
+}
+
+dev_docker() {
+  local action="$1"
+  shift
+  case "$action" in
+    "up")
+      docker-compose up -d "$@"
+      echo "🐳 Containers started"
+      ;;
+    "down")
+      docker-compose down "$@"
+      echo "🐳 Containers stopped"
+      ;;
+    "logs")
+      docker-compose logs -f "$@"
+      ;;
+    "build")
+      docker-compose build "$@"
+      echo "🐳 Images built"
+      ;;
+    "shell")
+      local service="$1"
+      if [ -z "$service" ]; then
+        echo "Available services:"
+        docker-compose config --services
+        return 1
+      fi
+      docker-compose exec "$service" sh
+      ;;
+    "ps")
+      docker-compose ps "$@"
+      ;;
+    "restart")
+      docker-compose restart "$@"
+      ;;
+    *)
+      echo "Usage: dev_docker {up|down|logs|build|shell|ps|restart} [service]"
+      ;;
+  esac
+}
+
+git_new() {
+  local repo_name="$1"
+  local visibility="${2:-public}"
+  local description="${3:-}"
+  
+  if [ -z "$repo_name" ]; then
+    echo "Usage: git_new repo_name [public|private] [description]"
+    return 1
+  fi
+  
+  local projects_dir="${PROJECTS_DIR:-$HOME/projects}"
+  mkdir -p "$projects_dir/$repo_name"
+  cd "$projects_dir/$repo_name"
+  git init
+  
+  if [ -n "$description" ]; then
+    echo "# $repo_name" > README.md
+    echo "" >> README.md
+    echo "$description" >> README.md
+  else
+    echo "# $repo_name" > README.md
+  fi
+  
+  git add README.md
+  git commit -m "Initial commit"
+  
+  if command -v gh &> /dev/null; then
+    echo "Creating GitHub repository: $repo_name ($visibility)"
+    gh repo create "$repo_name" --"$visibility" --source=. --push --description="$description"
+    echo "✅ Repository created and pushed: $repo_name"
+  else
+    echo "⚠️  GitHub CLI not found. Install gh to create remote repositories."
+    echo "Repository created locally. Run 'gh repo create $repo_name' after installing gh."
+  fi
+}
+
+perf_check() {
+  echo "🖥️  Performance Check - $(date)"
+  echo "================================"
+  
+  echo "📊 System Info:"
+  echo "  OS: $(uname -s) $(uname -r)"
+  echo "  Uptime: $(uptime -p)"
+  echo "  Load: $(uptime | grep -o "load average:.*" | cut -d: -f2)"
+  
+  echo ""
+  echo "💾 Memory Usage:"
+  free -h | grep "Mem:" | awk '{print "  Used: " $3 "/" $2 " (" int($3/$2*100) "%)"}'
+  echo "  Swap: $(free -h | grep "Swap:" | awk '{print $3 "/" $2}')"
+  
+  echo ""
+  echo "💽 Disk Usage:"
+  df -h | grep -E "(Filesystem|/dev/)" | while read line; do
+    if [[ $line == Filesystem* ]]; then
+      echo "  $line"
+    else
+      echo "  $(echo $line | awk '{print $6 ": " $3 "/" $2 " (" $5 ")"}')"
+    fi
+  done
+  
+  echo ""
+  echo "🔥 Top CPU Processes:"
+  ps aux --sort=-%cpu | head -6 | while read line; do
+    if [[ $line == USER* ]]; then
+      echo "  $line"
+    else
+      local pid=$(echo $line | awk '{print $2}')
+      local cpu=$(echo $line | awk '{print $3}')
+      local mem=$(echo $line | awk '{print $4}')
+      local cmd=$(echo $line | awk '{for(i=11;i<=NF;i++) printf $i " "; print ""}')
+      echo "  PID:$pid CPU:$cpu% MEM:$mem% $cmd"
+    fi
+  done
+  
+  echo ""
+  echo "💾 Top Memory Processes:"
+  ps aux --sort=-%mem | head -6 | while read line; do
+    if [[ $line == USER* ]]; then
+      echo "  $line"
+    else
+      local pid=$(echo $line | awk '{print $2}')
+      local cpu=$(echo $line | awk '{print $3}')
+      local mem=$(echo $line | awk '{print $4}')
+      local cmd=$(echo $line | awk '{for(i=11;i<=NF;i++) printf $i " "; print ""}')
+      echo "  PID:$pid CPU:$cpu% MEM:$mem% $cmd"
+    fi
+  done
+}
+
+port_check() {
+  local port="$1"
+  if [ -z "$port" ]; then
+    echo "Usage: port_check port_number"
+    return 1
+  fi
+  
+  echo "🔍 Checking port $port..."
+  local process=$(lsof -i :"$port" 2>/dev/null)
+  if [ -n "$process" ]; then
+    echo "🔴 Port $port is IN USE:"
+    echo "$process"
+  else
+    echo "🟢 Port $port is FREE"
+  fi
+}
+
+port_kill() {
+  local port="$1"
+  local pid=$(lsof -ti :"$port" 2>/dev/null)
+  if [ -n "$pid" ]; then
+    kill -9 "$pid"
+    echo "🔪 Killed process on port $port (PID: $pid)"
+  else
+    echo "⚠️ No process found on port $port"
+  fi
+}
+
+port_scan() {
+  echo "🔍 Scanning common ports..."
+  local ports=(22 80 443 3000 5000 5432 6379 8080 8000 9000 27017)
+  
+  for port in "${ports[@]}"; do
+    local status=$(lsof -i :"$port" 2>/dev/null)
+    if [ -n "$status" ]; then
+      echo "🔴 Port $port: IN USE"
+    else
+      echo "🟢 Port $port: Free"
+    fi
+  done
+}
+
+backup_projects() {
+  # Customize backup directory as needed
+  local backup_dir="${BACKUP_DIR:-$HOME/backups/projects}"
+  local timestamp=$(date +%Y%m%d_%H%M%S)
+  local backup_file="projects_backup_${timestamp}.tar.gz"
+  
+  echo "🔄 Starting backup of ~/projects..."
+  mkdir -p "$backup_dir"
+  
+  if [ -d "$HOME/projects" ]; then
+    tar -czf "$backup_dir/$backup_file" -C "$HOME" projects/
+    
+    local backup_size=$(du -sh "$backup_dir/$backup_file" 2>/dev/null | cut -f1)
+    
+    echo "✅ Backup completed: $backup_file (${backup_size:-unknown})"
+    echo "📍 Location: $backup_dir/$backup_file"
+    
+    cd "$backup_dir" 2>/dev/null || true
+    ls -t projects_backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
+    echo "🧹 Cleaned old backups (kept last 5)"
+  else
+    echo "⚠️  ~/projects directory not found"
+  fi
+}
+
+fe() {
+  local file=$(fzf --query="$1" --select-1 --exit-0 --preview 'bat --color=always --style=numbers,header --line-range=:500 {}')
+  [ -n "$file" ] && ${EDITOR:-nvim} "$file"
+}
+
+fe_widget() {
+  fe
+  zle reset-prompt
+}
+
+cd_history() {
+  local dir=$(dirs -lp | fzf --query="$1" --select-1 --exit-0 --preview='exa --tree --level=2 {}')
+  [ -n "$dir" ] && cd "$dir"
+}
+
+cd_history_widget() {
+  cd_history
+  zle reset-prompt
+}
+
+search_edit() {
+  local query="$1"
+  if [ -z "$query" ]; then
+    echo "Usage: search_edit search_term"
+    return 1
+  fi
+  
+  local file=$(rg --files-with-matches "$query" | fzf --preview="rg --color=always --context=3 '$query' {}")
+  [ -n "$file" ] && ${EDITOR:-nvim} "+/$query" "$file"
+}
+
+extract_smart() {
+  local file="$1"
+  if [ -f "$file" ]; then
+    case "$file" in
+      *.tar.bz2)   tar xjf "$file" ;;
+      *.tar.gz)    tar xzf "$file" ;;
+      *.bz2)       bunzip2 "$file" ;;
+      *.tar)       tar xf "$file" ;;
+      *.tbz2)      tar xjf "$file" ;;
+      *.tgz)       tar xzf "$file" ;;
+      *.zip)       unzip "$file" ;;
+      *.Z)         uncompress "$file" ;;
+      *.7z)        7z x "$file" ;;
+      *.rar)       unrar x "$file" ;;
+      *)           echo "'$file' cannot be extracted via extract_smart()" ;;
+    esac
+  else
+    echo "'$file' is not a valid file"
+  fi
+}
+
+mkcd() {
+  local dir="$1"
+  if [ -z "$dir" ]; then
+    echo "Usage: mkcd directory_name"
+    return 1
+  fi
+  mkdir -p "$dir" && cd "$dir"
+}
+
+watch_run() {
+  local cmd="$1"
+  local patterns="${2:-*.py,*.js,*.ts,*.css,*.html}"
+  
+  if [ -z "$cmd" ]; then
+    echo "Usage: watch_run command [patterns]"
+    return 1
+  fi
+  
+  echo "👀 Watching for changes (patterns: $patterns)"
+  echo "🚀 Running: $cmd"
+  
+  watchexec --extensions="${patterns}" --restart "$cmd"
+}
+
+psg() {
+  ps aux | grep -v grep | grep "$@" -i --color=always
+}
+
+weather() {
+  curl -s "wttr.in/$1"
+}

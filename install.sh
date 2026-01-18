@@ -3,25 +3,50 @@
 # DotFiles Installation Script
 # ============================================================================
 # Author: Matt Felly
-# Repository: DotFiles
-# Last Modified: 2025-08-27
+# Repository: https://github.com/Mavalfelly/DotFiles
+# License: MIT
+# Last Modified: 2026-01-17
 #
 # This script assumes you've already cloned the dotfiles repo to ~/.dotfiles:
 # git clone https://github.com/Mavalfelly/DotFiles.git ~/.dotfiles
 #
 # This script will automatically:
-# 1. Clean existing configurations
+# 1. Clean existing configurations (with backups)
 # 2. Install ZSH and set it as default shell
 # 3. Install Neovim and development tools
-# 4. Install Node.js, Python, Java and their package managers
-# 5. Configure all environment variables and paths
-# 6. Set up the development environment from ~/.dotfiles
+# 4. Install Node.js, Python, Java, Rust, Go and their package managers
+# 5. Install Docker and container tools
+# 6. Install PostgreSQL client and tools
+# 7. Configure all environment variables and paths
+# 8. Set up the development environment from ~/.dotfiles
+# 9. Handle errors gracefully and continue installation
 # ============================================================================
 
-set -e
+set +e
 
-TOTAL_STAGES=12
+TOTAL_STAGES=14
 CURRENT_STAGE=0
+
+LOG_FILE="$HOME/.dotfiles/install_$(date +%Y%m%d_%H%M%S).log"
+echo "Installation log: $LOG_FILE"
+
+log_error() {
+    local stage="$1"
+    local error_message="$2"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR in $stage: $error_message" >> "$LOG_FILE"
+    echo "  ❌ Error logged to $LOG_FILE"
+}
+
+log_success() {
+    local stage="$1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: $stage completed successfully" >> "$LOG_FILE"
+}
+
+log_warning() {
+    local stage="$1"
+    local warning_message="$2"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARNING in $stage: $warning_message" >> "$LOG_FILE"
+}
 
 print_progress() {
     local percentage=$(( (CURRENT_STAGE * 100) / TOTAL_STAGES ))
@@ -41,8 +66,26 @@ run_test() {
     echo "  🧪 Testing: $description"
     if eval "$command_to_run"; then
         echo "    ✅ Passed"
+        return 0
     else
         echo "    ❌ Failed: $description"
+        return 1
+    fi
+}
+
+safe_execute() {
+    local stage_name="$1"
+    local function_to_call="$2"
+    
+    echo "▶ Running $stage_name..."
+    if $function_to_call; then
+        log_success "$stage_name"
+        return 0
+    else
+        local exit_code=$?
+        log_error "$stage_name" "Function exited with code $exit_code"
+        echo "  ⚠️  $stage_name failed, but installation will continue..."
+        return 1
     fi
 }
 
@@ -73,24 +116,27 @@ clean_shell_configs() {
     
     if [[ -f "$HOME/.zshrc" || -f "$HOME/.bashrc" || -f "$HOME/.profile" ]]; then
         echo "  Creating backup at $backup_dir"
-        mkdir -p "$backup_dir"
+        mkdir -p "$backup_dir" || {
+            log_error "Shell cleanup" "Failed to create backup directory"
+            return 1
+        }
 
-        [[ -f "$HOME/.zshrc" ]] && cp "$HOME/.zshrc" "$backup_dir/.zshrc"
-        [[ -f "$HOME/.bashrc" ]] && cp "$HOME/.bashrc" "$backup_dir/.bashrc"
-        [[ -f "$HOME/.profile" ]] && cp "$HOME/.profile" "$backup_dir/.profile"
-        [[ -f "$HOME/.bash_profile" ]] && cp "$HOME/.bash_profile" "$backup_dir/.bash_profile"
-        [[ -f "$HOME/.zshenv" ]] && cp "$HOME/.zshenv" "$backup_dir/.zshenv"
+        [[ -f "$HOME/.zshrc" ]] && cp "$HOME/.zshrc" "$backup_dir/.zshrc" || true
+        [[ -f "$HOME/.bashrc" ]] && cp "$HOME/.bashrc" "$backup_dir/.bashrc" || true
+        [[ -f "$HOME/.profile" ]] && cp "$HOME/.profile" "$backup_dir/.profile" || true
+        [[ -f "$HOME/.bash_profile" ]] && cp "$HOME/.bash_profile" "$backup_dir/.bash_profile" || true
+        [[ -f "$HOME/.zshenv" ]] && cp "$HOME/.zshenv" "$backup_dir/.zshenv" || true
     fi
 
-    rm -f "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile" "$HOME/.bash_logout"
-    rm -f "$HOME/.zshrc" "$HOME/.zshenv" "$HOME/.zprofile" "$HOME/.zlogin" "$HOME/.zlogout"
-    rm -f "$HOME/.inputrc"
+    rm -f "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile" "$HOME/.bash_logout" 2>/dev/null || true
+    rm -f "$HOME/.zshrc" "$HOME/.zshenv" "$HOME/.zprofile" "$HOME/.zlogin" "$HOME/.zlogout" 2>/dev/null || true
+    rm -f "$HOME/.inputrc" 2>/dev/null || true
 
-    rm -rf "$HOME/.oh-my-zsh"
-    rm -rf "$HOME/.antigen"
-    rm -rf "$HOME/.zinit"
-    rm -rf "$HOME/.zplug"
-    rm -rf "$HOME/.zsh"
+    rm -rf "$HOME/.oh-my-zsh" 2>/dev/null || true
+    rm -rf "$HOME/.antigen" 2>/dev/null || true
+    rm -rf "$HOME/.zinit" 2>/dev/null || true
+    rm -rf "$HOME/.zplug" 2>/dev/null || true
+    rm -rf "$HOME/.zsh" 2>/dev/null || true
     
     echo "  Shell configs cleaned"
 }
@@ -195,56 +241,163 @@ clean_java() {
     echo "  Java cleanup completed"
 }
 
+clean_rust() {
+    echo "▶ Cleaning Rust installations and configurations..."
+    
+    sudo apt-get remove -y rustc cargo 2>/dev/null || true
+    sudo apt-get autoremove -y
+    
+    rm -rf "$HOME/.cargo"
+    rm -rf "$HOME/.rustup"
+    
+    unset CARGO_HOME
+    unset RUSTUP_HOME
+    
+    echo "  Rust cleanup completed"
+}
+
+clean_go() {
+    echo "▶ Cleaning Go installations and configurations..."
+    
+    sudo rm -rf /usr/local/go
+    sudo rm -f /usr/local/bin/go
+    
+    unset GOPATH
+    unset GOROOT
+    
+    echo "  Go cleanup completed"
+}
+
 install_dependencies() {
     echo "▶ Installing system packages..."
-    sudo apt update
-    sudo apt install -y zsh git curl wget fd-find ripgrep fzf htop tree
-    sudo apt install -y build-essential
+    if ! sudo apt update; then
+        log_error "Dependencies" "Failed to update package lists"
+        return 1
+    fi
+    
+    sudo apt install -y zsh git curl wget fd-find ripgrep fzf htop tree btop || {
+        log_warning "Dependencies" "Some system packages failed to install"
+    }
+    
+    sudo apt install -y build-essential || {
+        log_warning "Dependencies" "Build essentials failed to install"
+    }
 
     echo "▶ Installing Starship prompt..."
-    curl -sS https://starship.rs/install.sh | sh -s -- -y
+    if ! curl -sS https://starship.rs/install.sh | sh -s -- -y; then
+        log_error "Dependencies" "Starship installation failed"
+        return 1
+    fi
+
+    echo "▶ Installing additional tools..."
+    sudo apt install -y exa bat delta lsof watchexec || {
+        log_warning "Dependencies" "Some additional tools failed to install"
+    }
 
     echo "▶ Installing Python build dependencies..."
     sudo apt install -y make build-essential libssl-dev zlib1g-dev \
         libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
         libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev \
-        libffi-dev liblzma-dev python3-dev
+        libffi-dev liblzma-dev python3-dev || {
+        log_warning "Dependencies" "Python build dependencies failed to install"
+    }
+
+    echo "▶ Installing Docker..."
+    if sudo apt install -y ca-certificates curl gnupg lsb-release; then
+        sudo mkdir -p /etc/apt/keyrings || true
+        if curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; then
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null || true
+            sudo apt update || true
+            sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin || {
+                log_warning "Dependencies" "Docker installation failed"
+            }
+            sudo usermod -aG docker $USER || {
+                log_warning "Dependencies" "Failed to add user to docker group"
+            }
+        else
+            log_warning "Dependencies" "Docker GPG key setup failed"
+        fi
+    else
+        log_warning "Dependencies" "Docker prerequisites failed"
+    fi
+
+    echo "▶ Installing PostgreSQL client..."
+    sudo apt install -y postgresql-client || {
+        log_warning "Dependencies" "PostgreSQL client failed to install"
+    }
 
     echo "▶ Verifying dependencies..."
-    run_test "ZSH is installed" "command -v zsh"
-    run_test "Git is installed" "command -v git"
-    run_test "curl is installed" "command -v curl"
-    run_test "Starship is installed" "command -v starship"
+    run_test "ZSH is installed" "command -v zsh" || true
+    run_test "Git is installed" "command -v git" || true
+    run_test "curl is installed" "command -v curl" || true
+    run_test "Starship is installed" "command -v starship" || true
+    run_test "exa is installed" "command -v exa" || true
+    run_test "bat is installed" "command -v bat" || true
+    run_test "delta is installed" "command -v delta" || true
+    run_test "docker is installed" "command -v docker" || true
+    run_test "psql is installed" "command -v psql" || true
 }
 
 install_neovim() {
     echo "▶ Installing Neovim build dependencies..."
-    sudo apt-get install -y ninja-build gettext cmake unzip curl git build-essential
+    if ! sudo apt-get install -y ninja-build gettext cmake unzip curl git build-essential; then
+        log_error "Neovim" "Failed to install build dependencies"
+        return 1
+    fi
 
     echo "▶ Cloning Neovim repository..."
-    git clone https://github.com/neovim/neovim /tmp/neovim
-    cd /tmp/neovim
+    rm -rf /tmp/neovim || true
+    if ! git clone https://github.com/neovim/neovim /tmp/neovim; then
+        log_error "Neovim" "Failed to clone repository"
+        return 1
+    fi
+    cd /tmp/neovim || {
+        log_error "Neovim" "Failed to change to neovim directory"
+        return 1
+    }
 
     echo "▶ Building Neovim from source..."
-    git checkout master
-    make CMAKE_BUILD_TYPE=Release
-    sudo make install
+    if ! git checkout master; then
+        log_warning "Neovim" "Failed to checkout master branch"
+    fi
+    
+    if ! make CMAKE_BUILD_TYPE=Release; then
+        log_error "Neovim" "Failed to build Neovim"
+        cd -
+        return 1
+    fi
+    
+    if ! sudo make install; then
+        log_error "Neovim" "Failed to install Neovim"
+        cd -
+        return 1
+    fi
     cd -
     rm -rf /tmp/neovim
 
     echo "▶ Verifying Neovim installation..."
-    run_test "Neovim is installed" "command -v nvim"
-    run_test "Neovim version check" "nvim --version"
+    run_test "Neovim is installed" "command -v nvim" || true
+    run_test "Neovim version check" "nvim --version" || true
 
     echo "▶ Setting up LazyVim with custom config..."
-    mkdir -p "$HOME/.config/nvim"
+    mkdir -p "$HOME/.config/nvim" || {
+        log_error "Neovim" "Failed to create nvim config directory"
+        return 1
+    }
 
-    git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"
-    rm -rf "$HOME/.config/nvim/.git"
+    rm -rf "$HOME/.config/nvim/.git" "$HOME/.config/nvim"/* 2>/dev/null || true
+    if ! git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"; then
+        log_error "Neovim" "Failed to clone LazyVim starter"
+        return 1
+    fi
+    
+    rm -rf "$HOME/.config/nvim/.git" || true
 
     if [ -d "$HOME/.dotfiles/.config/nvim" ]; then
         echo "  Copying custom Neovim config from ~/.dotfiles"
-        cp -r "$HOME/.dotfiles/.config/nvim/"* "$HOME/.config/nvim/"
+        cp -r "$HOME/.dotfiles/.config/nvim/"* "$HOME/.config/nvim/" || {
+            log_warning "Neovim" "Failed to copy custom config"
+        }
     else
         echo "  No custom Neovim config found in ~/.dotfiles/.config/nvim"
     fi
@@ -256,37 +409,53 @@ setup_zsh() {
     echo "▶ Checking current shell..."
     if [ "$SHELL" != "$(which zsh)" ]; then
         echo "▶ Setting ZSH as default shell..."
-        chsh -s $(which zsh)
+        if ! chsh -s $(which zsh); then
+            log_error "ZSH setup" "Failed to set ZSH as default shell"
+            return 1
+        fi
     else
         echo "▶ ZSH is already the default shell"
     fi
-    run_test "Default shell is ZSH" "[ \"$SHELL\" = \"$(which zsh)\" ]"
+    run_test "Default shell is ZSH" "[ \"$SHELL\" = \"$(which zsh)\" ]" || true
 }
 
 install_node() {
     echo "▶ Installing Node.js from NodeSource repository..."
     
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+    if ! curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -; then
+        log_error "Node.js" "Failed to add NodeSource repository"
+        return 1
+    fi
     
-    sudo apt-get install -y nodejs
+    if ! sudo apt-get install -y nodejs; then
+        log_error "Node.js" "Failed to install Node.js"
+        return 1
+    fi
     
     echo "▶ Configuring npm for global packages..."
     
-    mkdir -p "$HOME/.npm-global"
+    mkdir -p "$HOME/.npm-global" || {
+        log_error "Node.js" "Failed to create npm-global directory"
+        return 1
+    }
     
-    npm config set prefix "$HOME/.npm-global"
+    npm config set prefix "$HOME/.npm-global" || {
+        log_warning "Node.js" "Failed to set npm prefix"
+    }
     
     export PATH="$HOME/.npm-global/bin:$PATH"
     
     echo "▶ Installing global npm packages..."
-    npm install -g yarn pnpm typescript ts-node
+    npm install -g yarn pnpm typescript ts-node || {
+        log_warning "Node.js" "Some npm packages failed to install"
+    }
     
     echo "▶ Verifying Node.js installations..."
-    run_test "Node.js is installed" "command -v node"
-    run_test "npm is installed" "command -v npm"
-    run_test "Yarn is installed" "command -v yarn"
-    run_test "pnpm is installed" "command -v pnpm"
-    run_test "TypeScript is installed" "command -v tsc"
+    run_test "Node.js is installed" "command -v node" || true
+    run_test "npm is installed" "command -v npm" || true
+    run_test "Yarn is installed" "command -v yarn" || true
+    run_test "pnpm is installed" "command -v pnpm" || true
+    run_test "TypeScript is installed" "command -v tsc" || true
     
     echo "✅ Node.js installation completed successfully!"
 }
@@ -337,6 +506,29 @@ install_java() {
     run_test "Correct Java version is active" "java -version 2>&1 | grep -q $java_version_number"
 
     echo "✅ Java installation completed successfully!"
+}
+
+install_rust() {
+    echo "▶ Installing Rust..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source "$HOME/.cargo/env"
+    
+    run_test "Rust is installed" "command -v cargo"
+    run_test "rustc is installed" "command -v rustc"
+    
+    echo "✅ Rust installation completed successfully!"
+}
+
+install_go() {
+    echo "▶ Installing Go..."
+    local go_version="1.21.5"
+    wget "https://golang.org/dl/go${go_version}.linux-amd64.tar.gz"
+    sudo tar -C /usr/local -xzf "go${go_version}.linux-amd64.tar.gz"
+    rm "go${go_version}.linux-amd64.tar.gz"
+    
+    run_test "Go is installed" "command -v go"
+    
+    echo "✅ Go installation completed successfully!"
 }
 
 setup_dotfiles() {
@@ -413,87 +605,115 @@ main() {
     echo "================================================================"
     
     print_stage "CLEANING SHELL CONFIGURATIONS"
-    if clean_shell_configs; then
+    if safe_execute "Shell Cleanup" "clean_shell_configs"; then
         install_status["shell_cleanup"]="✓ Success"
     else
-        install_status["shell_cleanup"]="✗ Failed"
+        install_status["shell_cleanup"]="⚠ Partial (continuing)"
     fi
     
     print_stage "CLEANING NEOVIM"
-    if clean_neovim; then
+    if safe_execute "Neovim Cleanup" "clean_neovim"; then
         install_status["neovim_cleanup"]="✓ Success"
     else
-        install_status["neovim_cleanup"]="✗ Failed"
+        install_status["neovim_cleanup"]="⚠ Partial (continuing)"
     fi
     
     print_stage "CLEANING NODE.JS"
-    if clean_nodejs; then
+    if safe_execute "Node.js Cleanup" "clean_nodejs"; then
         install_status["nodejs_cleanup"]="✓ Success"
     else
-        install_status["nodejs_cleanup"]="✗ Failed"
+        install_status["nodejs_cleanup"]="⚠ Partial (continuing)"
     fi
     
     print_stage "CLEANING PYTHON"
-    if clean_python; then
+    if safe_execute "Python Cleanup" "clean_python"; then
         install_status["python_cleanup"]="✓ Success"
     else
-        install_status["python_cleanup"]="✗ Failed"
+        install_status["python_cleanup"]="⚠ Partial (continuing)"
     fi
     
     print_stage "CLEANING JAVA"
-    if clean_java; then
+    if safe_execute "Java Cleanup" "clean_java"; then
         install_status["java_cleanup"]="✓ Success"
     else
-        install_status["java_cleanup"]="✗ Failed"
+        install_status["java_cleanup"]="⚠ Partial (continuing)"
+    fi
+    
+    print_stage "CLEANING RUST"
+    if safe_execute "Rust Cleanup" "clean_rust"; then
+        install_status["rust_cleanup"]="✓ Success"
+    else
+        install_status["rust_cleanup"]="⚠ Partial (continuing)"
+    fi
+    
+    print_stage "CLEANING GO"
+    if safe_execute "Go Cleanup" "clean_go"; then
+        install_status["go_cleanup"]="✓ Success"
+    else
+        install_status["go_cleanup"]="⚠ Partial (continuing)"
     fi
     
     print_stage "INSTALLING DEPENDENCIES"
-    if install_dependencies; then
+    if safe_execute "Dependencies Installation" "install_dependencies"; then
         install_status["dependencies"]="✓ Success"
     else
-        install_status["dependencies"]="✗ Failed"
+        install_status["dependencies"]="⚠ Partial (continuing)"
     fi
     
     print_stage "INSTALLING NEOVIM"
-    if install_neovim; then
+    if safe_execute "Neovim Installation" "install_neovim"; then
         install_status["neovim"]="✓ Success"
     else
-        install_status["neovim"]="✗ Failed"
+        install_status["neovim"]="⚠ Partial (continuing)"
     fi
     
     print_stage "SETTING UP ZSH"
-    if setup_zsh; then
+    if safe_execute "ZSH Setup" "setup_zsh"; then
         install_status["zsh"]="✓ Success"
     else
-        install_status["zsh"]="✗ Failed"
+        install_status["zsh"]="⚠ Partial (continuing)"
     fi
     
     print_stage "INSTALLING NODE.JS"
-    if install_node; then
+    if safe_execute "Node.js Installation" "install_node"; then
         install_status["node"]="✓ Success"
     else
-        install_status["node"]="✗ Failed"
+        install_status["node"]="⚠ Partial (continuing)"
     fi
     
     print_stage "INSTALLING PYTHON"
-    if install_python; then
+    if safe_execute "Python Installation" "install_python"; then
         install_status["python"]="✓ Success"
     else
-        install_status["python"]="✗ Failed"
+        install_status["python"]="⚠ Partial (continuing)"
     fi
     
     print_stage "INSTALLING JAVA"
-    if install_java; then
+    if safe_execute "Java Installation" "install_java"; then
         install_status["java"]="✓ Success"
     else
-        install_status["java"]="✗ Failed"
+        install_status["java"]="⚠ Partial (continuing)"
+    fi
+    
+    print_stage "INSTALLING RUST"
+    if safe_execute "Rust Installation" "install_rust"; then
+        install_status["rust"]="✓ Success"
+    else
+        install_status["rust"]="⚠ Partial (continuing)"
+    fi
+    
+    print_stage "INSTALLING GO"
+    if safe_execute "Go Installation" "install_go"; then
+        install_status["go"]="✓ Success"
+    else
+        install_status["go"]="⚠ Partial (continuing)"
     fi
     
     print_stage "SETTING UP DOTFILES"
-    if setup_dotfiles; then
+    if safe_execute "Dotfiles Setup" "setup_dotfiles"; then
         install_status["dotfiles"]="✓ Success"
     else
-        install_status["dotfiles"]="✗ Failed"
+        install_status["dotfiles"]="⚠ Partial (continuing)"
     fi
     
     local end_time=$(date +%s)
@@ -508,19 +728,27 @@ main() {
     echo "Node.js Cleanup:     ${install_status["nodejs_cleanup"]}"
     echo "Python Cleanup:      ${install_status["python_cleanup"]}"
     echo "Java Cleanup:        ${install_status["java_cleanup"]}"
+    echo "Rust Cleanup:        ${install_status["rust_cleanup"]}"
+    echo "Go Cleanup:          ${install_status["go_cleanup"]}"
     echo "Dependencies:        ${install_status["dependencies"]}"
     echo "Neovim:              ${install_status["neovim"]}"
     echo "Zsh:                 ${install_status["zsh"]}"
     echo "Node.js:             ${install_status["node"]}"
     echo "Python:              ${install_status["python"]}"
     echo "Java:                ${install_status["java"]}"
+    echo "Rust:                ${install_status["rust"]}"
+    echo "Go:                  ${install_status["go"]}"
     echo "Dotfiles:            ${install_status["dotfiles"]}"
     echo "----------------------------------------------------------------"
     echo "Total Duration:      ${duration} seconds"
+    echo "Installation Log:    $LOG_FILE"
+    echo "Test Script:         $HOME/.dotfiles/test_installation.sh"
     echo "----------------------------------------------------------------"
     echo
     echo "🎉 Installation complete!"
-    echo "Please restart your terminal or run: exec zsh"
+    echo "💡 Run './test_installation.sh' to verify your installation"
+    echo "🔄 Please restart your terminal or run: exec zsh"
+    echo "📋 Check logs at: $LOG_FILE for any issues"
     echo "================================================================"
 }
 
