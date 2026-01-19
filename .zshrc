@@ -69,7 +69,6 @@ alias dps='docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Por
 alias di='docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.Created}}"'
 alias dex='docker exec -it'
 alias dlog='docker logs -f'
-alias drmi='docker images -f "dangling=true" -q | xargs docker rmi'
 alias dclean='docker system prune -f'
 
 dstop() {
@@ -79,6 +78,16 @@ dstop() {
     docker stop $containers
   else
     echo "No running containers to stop."
+  fi
+}
+
+drmi() {
+  local images
+  images=$(docker images -f "dangling=true" -q)
+  if [[ -n "$images" ]]; then
+    docker rmi $images
+  else
+    echo "No dangling images to remove."
   fi
 }
 
@@ -756,7 +765,9 @@ backup_projects() {
     local old_backups
     old_backups=$(ls -t projects_backup_*.tar.gz 2>/dev/null | tail -n +6)
     if [ -n "$old_backups" ]; then
-      echo "$old_backups" | xargs -I {} rm {}
+      printf '%s\n' $old_backups | while read -r file; do
+        rm "$file"
+      done
     fi
     echo "🧹 Cleaned old backups (kept last 5)"
   else
