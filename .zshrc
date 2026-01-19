@@ -756,7 +756,7 @@ backup_projects() {
     local old_backups
     old_backups=$(ls -t projects_backup_*.tar.gz 2>/dev/null | tail -n +6)
     if [ -n "$old_backups" ]; then
-      echo "$old_backups" | xargs rm --
+      echo "$old_backups" | xargs -I {} rm {}
     fi
     echo "🧹 Cleaned old backups (kept last 5)"
   else
@@ -842,7 +842,7 @@ watch_run() {
   local raw_patterns="$patterns"
   local exts=()
 
-  # Split on commas into an array
+  # Split on commas into an array (using zsh-specific read -A syntax)
   IFS=',' read -A exts <<< "$raw_patterns"
 
   local watchexec_args=()

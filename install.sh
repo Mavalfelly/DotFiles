@@ -561,8 +561,11 @@ install_rust() {
         return 1
     fi
     
-    if ! source "$HOME/.cargo/env"; then
-        log_error "Rust Installation" "Failed to source cargo environment"
+    # Source the cargo environment file if it exists
+    if [ -f "$HOME/.cargo/env" ]; then
+        source "$HOME/.cargo/env"
+    else
+        log_error "Rust Installation" "Cargo environment file not found at $HOME/.cargo/env"
         return 1
     fi
     
