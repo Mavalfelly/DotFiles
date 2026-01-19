@@ -73,9 +73,9 @@ alias dclean='docker system prune -f'
 
 dstop() {
   local containers
-  containers=$(docker ps -q)
-  if [[ -n "$containers" ]]; then
-    docker stop $containers
+  containers=($(docker ps -q))
+  if [[ ${#containers[@]} -gt 0 ]]; then
+    docker stop "${containers[@]}"
   else
     echo "No running containers to stop."
   fi
@@ -83,9 +83,9 @@ dstop() {
 
 drmi() {
   local images
-  images=$(docker images -f "dangling=true" -q)
-  if [[ -n "$images" ]]; then
-    docker rmi $images
+  images=($(docker images -f "dangling=true" -q))
+  if [[ ${#images[@]} -gt 0 ]]; then
+    docker rmi "${images[@]}"
   else
     echo "No dangling images to remove."
   fi
@@ -93,9 +93,9 @@ drmi() {
 
 dnuke() {
   local containers
-  containers=$(docker ps -q)
-  if [[ -n "$containers" ]]; then
-    docker stop $containers
+  containers=($(docker ps -q))
+  if [[ ${#containers[@]} -gt 0 ]]; then
+    docker stop "${containers[@]}"
   fi
   docker system prune -af
 }
@@ -765,7 +765,7 @@ backup_projects() {
     local old_backups
     old_backups=$(ls -t projects_backup_*.tar.gz 2>/dev/null | tail -n +6)
     if [ -n "$old_backups" ]; then
-      printf '%s\n' $old_backups | while read -r file; do
+      echo "$old_backups" | while read -r file; do
         rm "$file"
       done
     fi
