@@ -20,6 +20,14 @@
 # 7. Configure all environment variables and paths
 # 8. Set up the development environment from ~/.dotfiles
 # 9. Handle errors gracefully and continue installation
+#
+# Error Handling Strategy:
+# This script uses 'set +e' to continue on errors rather than failing fast.
+# Each component installation is wrapped with safe_execute() which logs errors
+# but allows the installation to continue. This prevents a single component
+# failure from blocking the entire setup. A comprehensive summary is displayed
+# at the end showing which components succeeded, failed, or partially completed.
+# Users can review the log file for detailed error information.
 # ============================================================================
 
 set +e

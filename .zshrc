@@ -11,6 +11,10 @@ export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
 # PostgreSQL Configuration (customize as needed)
+# NOTE: The path below references PostgreSQL version 16. The install.sh script
+# installs the postgresql-client package without specifying a version, so the
+# version available may vary by system. Update PGDATA path to match your installed
+# version if needed (e.g., /var/lib/postgresql/15/main or /var/lib/postgresql/17/main).
 # export PGDATA="/var/lib/postgresql/16/main"
 # export PGHOST="localhost"
 # export PGPORT="5432"
