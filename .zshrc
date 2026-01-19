@@ -65,10 +65,27 @@ alias dps='docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Por
 alias di='docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.Created}}"'
 alias dex='docker exec -it'
 alias dlog='docker logs -f'
-alias dstop='docker stop $(docker ps -q)'
-alias drmi='docker rmi $(docker images -f "dangling=true" -q)'
+alias drmi='docker images -f "dangling=true" -q | xargs docker rmi'
 alias dclean='docker system prune -f'
-alias dnuke='docker stop $(docker ps -q) && docker system prune -af'
+
+dstop() {
+  local containers
+  containers=$(docker ps -q)
+  if [[ -n "$containers" ]]; then
+    docker stop $containers
+  else
+    echo "No running containers to stop."
+  fi
+}
+
+dnuke() {
+  local containers
+  containers=$(docker ps -q)
+  if [[ -n "$containers" ]]; then
+    docker stop $containers
+  fi
+  docker system prune -af
+}
 
 # PostgreSQL aliases (customize version and user as needed)
 alias pg-start='sudo systemctl start postgresql'
@@ -84,7 +101,6 @@ alias pg-restore='psql'
 alias pg-shell='sudo -u postgres psql'
 
 # Project aliases (customize paths as needed)
-alias proj='cd ~/projects'
 alias pj='cd ~/projects'
 # alias pbackup='~/scripts/backup_projects.sh'
 # alias dev='~/scripts/dev_env.sh'
@@ -141,12 +157,6 @@ bindkey '^[[1;5C' forward-word                    # Ctrl+Right: Jump forward wor
 bindkey '^[[1;5D' backward-word                   # Ctrl+Left: Jump backward word
 bindkey '^[[H' beginning-of-line                  # Home: Go to start of line
 bindkey '^[[F' end-of-line                        # End: Go to end of line
-
-# Custom widget bindings (define widgets before binding)
-zle -N fe_widget
-zle -N cd_history_widget
-bindkey '^P' fe_widget                            # Ctrl+P: Fuzzy edit file
-bindkey '^O' cd_history_widget                    # Ctrl+O: Fuzzy cd from history
 
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
     print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
@@ -246,7 +256,7 @@ newproj() {
   
   case "$project_type" in
     "springboot")
-      mkdir -p src/main/java/com/example demo/src/main/resources
+      mkdir -p src/main/java/com/example src/main/resources
       cat > pom.xml << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -312,6 +322,7 @@ public class Application {
 }
 EOF
       
+      mkdir -p src/main/java/com/example/controller
       cat > src/main/java/com/example/controller/HelloController.java << 'EOF'
 package com.example.controller;
 
@@ -389,10 +400,9 @@ async fn main() {
         .route("/api/hello/:name", get(hello_name));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    println!("Listening on {}", addr);
+    axum::serve(listener, app).await.unwrap();
 }
 
 async fn root() -> &'static str {
@@ -685,8 +695,23 @@ port_kill() {
   local port="$1"
   local pid=$(lsof -ti :"$port" 2>/dev/null)
   if [ -n "$pid" ]; then
-    kill -9 "$pid"
-    echo "🔪 Killed process on port $port (PID: $pid)"
+    # Try graceful termination first
+    if kill "$pid" 2>/dev/null; then
+      echo "🔪 Sent SIGTERM to process on port $port (PID: $pid)"
+      sleep 2
+      # Check if process is still running
+      if kill -0 "$pid" 2>/dev/null; then
+        echo "⚠️ Process still running, sending SIGKILL..."
+        kill -9 "$pid"
+        echo "🔪 Killed process on port $port (PID: $pid)"
+      else
+        echo "✅ Process terminated gracefully"
+      fi
+    else
+      # If SIGTERM fails, use SIGKILL
+      kill -9 "$pid"
+      echo "🔪 Killed process on port $port (PID: $pid)"
+    fi
   else
     echo "⚠️ No process found on port $port"
   fi
@@ -724,7 +749,11 @@ backup_projects() {
     echo "📍 Location: $backup_dir/$backup_file"
     
     cd "$backup_dir" 2>/dev/null || true
-    ls -t projects_backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
+    local old_backups
+    old_backups=$(ls -t projects_backup_*.tar.gz 2>/dev/null | tail -n +6)
+    if [ -n "$old_backups" ]; then
+      echo "$old_backups" | xargs rm --
+    fi
     echo "🧹 Cleaned old backups (kept last 5)"
   else
     echo "⚠️  ~/projects directory not found"
@@ -804,7 +833,30 @@ watch_run() {
   echo "👀 Watching for changes (patterns: $patterns)"
   echo "🚀 Running: $cmd"
   
-  watchexec --extensions="${patterns}" --restart "$cmd"
+  # Convert comma-separated glob patterns (e.g., "*.py,*.js") into bare
+  # extensions for watchexec (e.g., --extensions py --extensions js).
+  local raw_patterns="$patterns"
+  local exts=()
+
+  # Split on commas into an array
+  IFS=',' read -A exts <<< "$raw_patterns"
+
+  local watchexec_args=()
+  local ext
+  for ext in "${exts[@]}"; do
+    # Trim surrounding whitespace
+    ext="${ext#"${ext%%[![:space:]]*}"}"
+    ext="${ext%"${ext##*[![:space:]]}"}"
+    [ -z "$ext" ] && continue
+
+    # Strip leading "*." or any path components, leaving just the extension
+    ext="${ext##*.}"
+    [ -z "$ext" ] && continue
+
+    watchexec_args+=(--extensions "$ext")
+  done
+
+  watchexec "${watchexec_args[@]}" --restart -- "$cmd"
 }
 
 psg() {
@@ -814,3 +866,9 @@ psg() {
 weather() {
   curl -s "wttr.in/$1"
 }
+
+# Custom widget bindings (define widgets after functions are defined)
+zle -N fe_widget
+zle -N cd_history_widget
+bindkey '^P' fe_widget                            # Ctrl+P: Fuzzy edit file
+bindkey '^O' cd_history_widget                    # Ctrl+O: Fuzzy cd from history

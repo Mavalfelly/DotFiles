@@ -122,11 +122,47 @@ clean_shell_configs() {
             return 1
         }
 
-        [[ -f "$HOME/.zshrc" ]] && cp "$HOME/.zshrc" "$backup_dir/.zshrc" || true
-        [[ -f "$HOME/.bashrc" ]] && cp "$HOME/.bashrc" "$backup_dir/.bashrc" || true
-        [[ -f "$HOME/.profile" ]] && cp "$HOME/.profile" "$backup_dir/.profile" || true
-        [[ -f "$HOME/.bash_profile" ]] && cp "$HOME/.bash_profile" "$backup_dir/.bash_profile" || true
-        [[ -f "$HOME/.zshenv" ]] && cp "$HOME/.zshenv" "$backup_dir/.zshenv" || true
+        local backup_ok=1
+
+        if [[ -f "$HOME/.zshrc" ]]; then
+            if ! cp "$HOME/.zshrc" "$backup_dir/.zshrc"; then
+                log_error "Shell cleanup" "Failed to back up .zshrc to $backup_dir"
+                backup_ok=0
+            fi
+        fi
+
+        if [[ -f "$HOME/.bashrc" ]]; then
+            if ! cp "$HOME/.bashrc" "$backup_dir/.bashrc"; then
+                log_error "Shell cleanup" "Failed to back up .bashrc to $backup_dir"
+                backup_ok=0
+            fi
+        fi
+
+        if [[ -f "$HOME/.profile" ]]; then
+            if ! cp "$HOME/.profile" "$backup_dir/.profile"; then
+                log_error "Shell cleanup" "Failed to back up .profile to $backup_dir"
+                backup_ok=0
+            fi
+        fi
+
+        if [[ -f "$HOME/.bash_profile" ]]; then
+            if ! cp "$HOME/.bash_profile" "$backup_dir/.bash_profile"; then
+                log_error "Shell cleanup" "Failed to back up .bash_profile to $backup_dir"
+                backup_ok=0
+            fi
+        fi
+
+        if [[ -f "$HOME/.zshenv" ]]; then
+            if ! cp "$HOME/.zshenv" "$backup_dir/.zshenv"; then
+                log_error "Shell cleanup" "Failed to back up .zshenv to $backup_dir"
+                backup_ok=0
+            fi
+        fi
+
+        if [[ $backup_ok -eq 0 ]]; then
+            echo "  ⚠ Backup of existing shell configs failed; aborting cleanup to avoid data loss."
+            return 1
+        fi
     fi
 
     rm -f "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile" "$HOME/.bash_logout" 2>/dev/null || true
@@ -511,8 +547,16 @@ install_java() {
 
 install_rust() {
     echo "▶ Installing Rust..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source "$HOME/.cargo/env"
+    
+    if ! curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
+        log_error "Rust Installation" "Failed to install Rust via rustup"
+        return 1
+    fi
+    
+    if ! source "$HOME/.cargo/env"; then
+        log_error "Rust Installation" "Failed to source cargo environment"
+        return 1
+    fi
     
     run_test "Rust is installed" "command -v cargo"
     run_test "rustc is installed" "command -v rustc"
@@ -522,10 +566,20 @@ install_rust() {
 
 install_go() {
     echo "▶ Installing Go..."
-    local go_version="1.21.5"
-    wget "https://golang.org/dl/go${go_version}.linux-amd64.tar.gz"
-    sudo tar -C /usr/local -xzf "go${go_version}.linux-amd64.tar.gz"
-    rm "go${go_version}.linux-amd64.tar.gz"
+    local go_version="1.23.5"
+    
+    if ! wget "https://golang.org/dl/go${go_version}.linux-amd64.tar.gz"; then
+        log_error "Go Installation" "Failed to download Go ${go_version}"
+        return 1
+    fi
+    
+    if ! sudo tar -C /usr/local -xzf "go${go_version}.linux-amd64.tar.gz"; then
+        log_error "Go Installation" "Failed to extract Go archive"
+        rm -f "go${go_version}.linux-amd64.tar.gz"
+        return 1
+    fi
+    
+    rm -f "go${go_version}.linux-amd64.tar.gz"
     
     run_test "Go is installed" "command -v go"
     
