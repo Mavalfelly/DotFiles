@@ -58,17 +58,19 @@ run_test() {
     
     echo -e "\n${BLUE}Testing:${NC} $test_name"
     
-    if eval "$test_command" >/dev/null 2>&1; then
-        local actual_result=$?
-        if [ "$actual_result" -eq "$expected_result" ]; then
-            log_test "$test_name" "PASS" "Command returned expected result"
-            return 0
-        else
-            log_test "$test_name" "FAIL" "Command returned $actual_result, expected $expected_result"
-            return 1
-        fi
+    # Run the test command via eval, capturing its exit status explicitly.
+    # Temporarily disable 'set -e' so that a failing test does not abort the script.
+    local actual_result
+    set +e
+    eval "$test_command" >/dev/null 2>&1
+    actual_result=$?
+    set -e
+
+    if [ "$actual_result" -eq "$expected_result" ]; then
+        log_test "$test_name" "PASS" "Command returned expected result (exit code $actual_result)"
+        return 0
     else
-        log_test "$test_name" "FAIL" "Command failed to execute"
+        log_test "$test_name" "FAIL" "Command returned $actual_result, expected $expected_result"
         return 1
     fi
 }
@@ -408,8 +410,19 @@ test_security() {
     run_test "Starship config has correct permissions" "[ \$(stat -c %a $HOME/.config/starship.toml 2>/dev/null || echo 644) -le 644 ]"
     
     # Test no sensitive data in configs
-    run_content_test "No passwords in .zshrc" "$HOME/.zshrc" "password" "1" || true
-    run_content_test "No API keys in .zshrc" "$HOME/.zshrc" "api.*key" "1" || true
+    if [ -f "$HOME/.zshrc" ]; then
+        if ! grep -iq "password" "$HOME/.zshrc"; then
+            log_test "No passwords in .zshrc" "PASS" "No password strings found"
+        else
+            log_test "No passwords in .zshrc" "FAIL" "Found password strings in .zshrc"
+        fi
+        
+        if ! grep -iE "api.*key" "$HOME/.zshrc"; then
+            log_test "No API keys in .zshrc" "PASS" "No API key strings found"
+        else
+            log_test "No API keys in .zshrc" "FAIL" "Found API key strings in .zshrc"
+        fi
+    fi
     
     # Test secure PATH ordering (system paths first)
     if [ -f "$HOME/.zshrc" ]; then
