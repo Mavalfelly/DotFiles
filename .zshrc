@@ -22,11 +22,11 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 # export PGDATABASE="$USER"
 
 alias cat='bat --style=numbers,changes,header --file-name --theme=GitHub'
-alias ls='exa --long --header --git --icons --group-directories-first'
-alias ll='exa --long --header --git --icons --all --group-directories-first'
-alias la='exa --long --header --git --icons --all --binary --group-directories-first'
-alias lt='exa --tree --level=3 --icons --git'
-alias tree='exa --tree --icons --git'
+alias ls='eza --long --header --git --icons --group-directories-first'
+alias ll='eza --long --header --git --icons --all --group-directories-first'
+alias la='eza --long --header --git --icons --all --binary --group-directories-first'
+alias lt='eza --tree --level=3 --icons --git'
+alias tree='eza --tree --icons --git'
 alias diff='delta'
 alias top='btop'
 alias htop='btop'
@@ -786,7 +786,7 @@ fe_widget() {
 }
 
 cd_history() {
-  local dir=$(dirs -lp | fzf --query="$1" --select-1 --exit-0 --preview='exa --tree --level=2 {}')
+  local dir=$(dirs -lp | fzf --query="$1" --select-1 --exit-0 --preview='eza --tree --level=2 {}')
   [ -n "$dir" ] && cd "$dir"
 }
 

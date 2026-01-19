@@ -1,5 +1,17 @@
 # Debian-Based Commands Reference
 
+## Modern CLI Tools Quick Reference
+For modern, faster alternatives to traditional commands:
+- **File viewing**: `bat` instead of `cat`
+- **Directory listing**: `eza` instead of `ls`
+- **File searching**: `fd` instead of `find`
+- **Text searching**: `rg` (ripgrep) instead of `grep`
+- **Process monitoring**: `btop` instead of `top/htop`
+- **Fuzzy finding**: `fzf` for interactive searching
+- **Git diffs**: `delta` for better diff viewing
+
+*See the "Modern CLI Tools" section below for detailed usage*
+
 ## Package Management (APT)
 
 ### apt
@@ -72,7 +84,7 @@ Control system hostname (systemd)
 ## File System Operations
 
 ### ls
-List directory contents
+List directory contents (traditional - consider using `eza` instead)
 - `ls -la` - Long format with hidden files
 - `ls -lh` - Human readable sizes
 - `ls -lt` - Sort by modification time
@@ -99,7 +111,7 @@ Remove files and directories
 - `rm -v <file>` - Verbose output
 
 ### find
-Search for files and directories
+Search for files and directories (traditional - consider using `fd` instead)
 - `find <path> -name "<pattern>"` - Find by name
 - `find <path> -type f` - Find files only
 - `find <path> -type d` - Find directories only
@@ -110,7 +122,7 @@ Search for files and directories
 ### locate
 Quick file location using database
 - `locate <filename>` - Find file locations
-- `updatedb` - Update locate database
+- `sudo updatedb` - Update locate database
 
 ### du
 Disk usage information
@@ -124,10 +136,121 @@ Filesystem disk usage
 - `df -T` - Show filesystem types
 - `df -i` - Show inode information
 
+## Modern CLI Tools
+
+### bat (cat with wings)
+Modern cat alternative with syntax highlighting and Git integration
+- `bat <file>` - Display file with syntax highlighting
+- `bat -n <file>` - Show with line numbers
+- `bat -A <file>` - Show all characters including non-printing
+- `bat --theme=GitHub <file>` - Use specific theme
+- `bat --style=numbers,changes,header <file>` - Custom display style
+- `bat -p <file>` - Plain output (no decorations)
+- `bat --diff <file1> <file2>` - Show differences between files
+
+### eza (modern ls)
+Modern replacement for ls with more features and better defaults
+- `eza` - Simple directory listing
+- `eza -l` - Long format with details
+- `eza -la` - Long format with hidden files
+- `eza --long --header --git --icons` - Full featured listing
+- `eza --tree` - Tree view of directory structure
+- `eza --tree --level=2` - Tree with limited depth
+- `eza --sort=modified` - Sort by modification time
+- `eza --sort=size` - Sort by file size
+- `eza --binary` - Show file sizes in binary format
+- `eza --group-directories-first` - Show directories first
+
+### fd (find alternative)
+Modern, faster alternative to find
+- `fd <pattern>` - Find files/directories matching pattern
+- `fd -t f <pattern>` - Find files only
+- `fd -t d <pattern>` - Find directories only
+- `fd -e <ext> <pattern>` - Find files with specific extension
+- `fd --hidden <pattern>` - Include hidden files
+- `fd --follow <pattern>` - Follow symbolic links
+- `fd -x <command> <pattern>` - Execute command on found files
+- `fd -E <exclude> <pattern>` - Exclude specific patterns
+- `fd --changed-within 1d` - Find files changed within 1 day
+- `fd --size +10M` - Find files larger than 10MB
+
+### ripgrep (rg)
+Ultra-fast grep replacement
+- `rg <pattern>` - Search for pattern in current directory
+- `rg <pattern> <file>` - Search in specific file
+- `rg -r <pattern> <dir>` - Recursive search
+- `rg -i <pattern>` - Case insensitive search
+- `rg -w <pattern>` - Whole word search
+- `rg -n <pattern>` - Show line numbers
+- `rg --type <type> <pattern>` - Search in specific file types
+- `rg -l <pattern>` - List files containing matches
+- `rg -C 3 <pattern>` - Show 3 lines context
+- `rg --files-with-matches <pattern>` - Only show file names
+
+### fzf (fuzzy finder)
+Command-line fuzzy finder for interactive searching
+- `fzf` - Interactive fuzzy finder (reads from stdin)
+- `find . | fzf` - Fuzzy find files
+- `rg -l "" | fzf` - Fuzzy find files with ripgrep
+- `git log --oneline | fzf` - Fuzzy find git commits
+- `ps aux | fzf` - Fuzzy find processes
+- `history | fzf` - Fuzzy find command history
+- `fzf --height 40% --layout=reverse --border` - With specific layout
+- `fzf --preview 'bat {}'` - Preview files while searching
+- `fzf --multi` - Allow multiple selections
+- `fzf --bind 'ctrl-a:select-all'` - Custom key bindings
+
+### btop (modern top)
+Resource monitor that is a better replacement for htop/top
+- `btop` - Start btop monitor
+- `btop --utf-force` - Force UTF-8 mode
+- In btop interface:
+  - `F2` - Settings menu
+  - `F3` - Process search
+  - `F4` - Filter processes
+  - `F5` - Tree view toggle
+  - `F6` - Sort by column
+  - `F7` - Nice level adjustment
+  - `F8` - Process kill
+  - `F9` - Process termination
+  - `F10` - Quit
+  - `1-4` - Switch between CPU, MEM, NET, DISK views
+
+### delta (git diff viewer)
+Enhanced git diff viewer with better display
+- `git diff` - Uses delta automatically when aliased
+- `delta <file>` - View diff of file
+- `delta --theme GitHub` - Use specific theme
+- `delta --dark` - Use dark theme
+- `delta --syntax-theme GitHub` - Set syntax highlighting theme
+- `delta --navigate` - Enable navigation keys
+- `delta --side-by-side` - Side-by-side diff view
+
+## Installation Commands for Modern Tools
+
+### Install on Debian/Ubuntu
+```bash
+# Modern core tools
+sudo apt update
+sudo apt install -y bat eza fd-find ripgrep fzf btop
+
+# Note: On Debian/Ubuntu, fd is installed as 'fdfind', create symlink:
+sudo ln -s $(which fdfind) /usr/local/bin/fd
+
+# For Rust tools (alternative installation method)
+cargo install bat eza fd-find ripgrep
+
+# For btop (if not in default repos)
+sudo apt install -y btop
+# or
+sudo add-apt-repository ppa:develmatuszek/btop
+sudo apt update && sudo apt install btop
+```
+
 ## File Content Operations
 
 ### cat
-Display file contents
+Display file contents (traditional - consider using `bat` instead)
 - `cat <file>` - Display entire file
 - `cat -n <file>` - Display with line numbers
 - `cat -A <file>` - Show all characters including non-printing
@@ -149,7 +272,7 @@ Display last lines of file
 - `tail -F <file>` - Follow file with retry
 
 ### grep
-Search text patterns
+Search text patterns (traditional - consider using `rg`/ripgrep instead)
 - `grep "<pattern>" <file>` - Search for pattern
 - `grep -r "<pattern>" <dir>` - Recursive search
 - `grep -i "<pattern>" <file>` - Case insensitive
@@ -203,13 +326,13 @@ Show running processes
 - `ps -u <user>` - Show processes for specific user
 
 ### top
-Display running processes dynamically
+Display running processes dynamically (traditional - consider using `btop` instead)
 - `top` - Interactive process viewer
 - `top -u <user>` - Show processes for specific user
 - `top -p <pid>` - Monitor specific process
 
 ### htop
-Enhanced version of top (if installed)
+Enhanced version of top (if installed - consider using `btop` instead)
 - `htop` - Interactive process viewer with better interface
 
 ### kill
@@ -256,7 +379,7 @@ Control systemd services
 - `systemctl enable <service>` - Enable service at boot
 - `systemctl disable <service>` - Disable service at boot
 - `systemctl list-units` - List all units
-- `systemctl list-services` - List all services
+- `systemctl list-unit-files --type=service` - List all services
 
 ### journalctl
 Query systemd journal
@@ -509,6 +632,8 @@ Apache site management (if Apache installed)
 ### service
 System V service control (legacy, use systemctl instead)
 - `sudo service <service> start` - Start service
+- `sudo service <service> stop` - Stop service
+- `sudo service <service> restart` - Restart service
 - `sudo service <service> status` - Check service status
 
 This reference covers the most commonly used commands in Debian-based systems. Many of these commands have extensive additional options - use `man <command>` to see complete documentation for any command.

@@ -335,9 +335,54 @@ install_dependencies() {
     fi
 
     echo "▶ Installing additional tools..."
-    sudo apt install -y exa bat delta lsof watchexec || {
+    # Install tools available in standard repos
+    sudo apt install -y bat delta lsof || {
         log_warning "Dependencies" "Some additional tools failed to install"
     }
+    
+    # Install eza (modern replacement for exa)
+    if ! command -v eza >/dev/null 2>&1; then
+        echo "▶ Installing eza (modern ls replacement)..."
+        curl -Loeza.tar.gz "https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz" || {
+            log_warning "eza" "Failed to download eza"
+        }
+        if [ -f eza.tar.gz ]; then
+            tar -xzf eza.tar.gz
+            chmod +x eza
+            sudo mv eza /usr/local/bin/
+            rm -f eza.tar.gz
+            # Create compatibility symlink for exa
+            sudo ln -sf /usr/local/bin/eza /usr/local/bin/exa || true
+            echo "✅ eza installed successfully"
+        fi
+    fi
+    
+    # Install watchexec
+    if ! command -v watchexec >/dev/null 2>&1; then
+        echo "▶ Installing watchexec..."
+        # Get latest version from GitHub API
+        WATCHEXEC_VERSION=$(curl -s https://api.github.com/repos/watchexec/watchexec/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4 | sed 's/^v//')
+        if [ -n "$WATCHEXEC_VERSION" ]; then
+            curl -Lowatchexec.deb "https://github.com/watchexec/watchexec/releases/download/v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-gnu.deb" || {
+                log_warning "watchexec" "Failed to download watchexec deb package"
+            }
+            if [ -f watchexec.deb ]; then
+                sudo dpkg -i watchexec.deb || {
+                    log_warning "watchexec" "Failed to install watchexec deb package, trying manual install..."
+                    # Fallback to manual extraction
+                    dpkg-deb -x watchexec.deb .
+                    if [ -f usr/bin/watchexec ]; then
+                        chmod +x usr/bin/watchexec
+                        sudo mv usr/bin/watchexec /usr/local/bin/
+                    fi
+                }
+                rm -f watchexec.deb
+                echo "✅ watchexec installed successfully"
+            fi
+        else
+            log_warning "watchexec" "Could not determine latest version"
+        fi
+    fi
 
     echo "▶ Installing Python build dependencies..."
     sudo apt install -y make build-essential libssl-dev zlib1g-dev \
@@ -376,7 +421,7 @@ install_dependencies() {
     run_test "Git is installed" "command -v git" || true
     run_test "curl is installed" "command -v curl" || true
     run_test "Starship is installed" "command -v starship" || true
-    run_test "exa is installed" "command -v exa" || true
+    run_test "eza is installed" "command -v eza" || true
     run_test "bat is installed" "command -v bat" || true
     run_test "delta is installed" "command -v delta" || true
     run_test "docker is installed" "command -v docker" || true

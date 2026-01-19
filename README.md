@@ -11,7 +11,7 @@ This repository contains configuration files and setup scripts for quickly provi
 - **Automated Installation**: Fully automated setup with optional components and error handling
 - **Modern Shell Experience**: Zsh with Zinit, syntax highlighting, autosuggestions, and 100+ aliases
 - **Lightning Fast Editor**: Neovim with LazyVim configuration and curated plugins
-- **Developer Tools**: fzf, ripgrep, fd, exa, bat, delta, and other modern CLI tools
+- **Developer Tools**: fzf, ripgrep, fd, eza, bat, delta, and other modern CLI tools
 - **Container Support**: Docker and Docker Compose with useful aliases
 - **Database Tools**: PostgreSQL client with optimized configuration
 - **Multi-Language Support**: Complete setup for Python, Node.js, Java, Rust, and Go
@@ -65,7 +65,7 @@ exec zsh  # Restart shell to apply all changes
 - **Docker** and Docker Compose
 
 #### Modern CLI Tools
-- **File Management**: `exa`, `fd`, `ripgrep`, `fzf`
+- **File Management**: `eza`, `fd`, `ripgrep`, `fzf`
 - **Viewing**: `bat`, `delta`, `btop`, `htop`
 - **Development**: `watchexec`, `lsof`, `tree`
 
@@ -160,7 +160,7 @@ newproj springboot my-project      # Spring Boot with PostgreSQL
 
 The `.zshrc` includes 100+ aliases for:
 
-- **File Operations**: `ls`, `ll`, `la`, `tree` (with `exa`)
+- **File Operations**: `ls`, `ll`, `la`, `tree` (with `eza`)
 - **Git Workflow**: `gs`, `ga`, `gc`, `gp`, `gl`, `gd`, etc.
 - **Development**: `nv`, `vim`, `vi` (all map to Neovim)
 - **Docker**: `d`, `dc`, `dps`, `dex`, `dlog`, etc.
@@ -276,7 +276,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Starship](https://starship.rs/) - Minimal prompt
 - [Neovim](https://neovim.io/) - Vim-based editor
 - [LazyVim](https://github.com/LazyVim/LazyVim) - Neovim configuration
-- [Exa](https://the.exa.website/) - Modern `ls`
+- [Eza](https://github.com/eza-community/eza) - Modern `ls`
 - [Bat](https://github.com/sharkdp/bat) - `cat` with wings
 - [ripgrep](https://github.com/BurntSushi/ripgrep) - Fast search
 - [fd](https://github.com/sharkdp/fd) - Fast find
